@@ -1,0 +1,67 @@
+---
+description: Defines the project directory structure and file organization for the tax-processing application.
+globs: 
+---
+# Project Directory Structure
+
+This rule defines the expected directory structure for the tax-processing application. All new files and modules should adhere to this organization.
+
+## Backend (`backend/`)
+
+The backend is a Python FastAPI application managed by `uv`.
+
+```text
+backend/
+  app/
+    __init__.py
+    main.py              # FastAPI entry point and app definition
+    config.py            # Configuration settings and environment variables
+    models.py            # SQLAlchemy database models
+    schemas.py           # Pydantic schemas for request/response validation
+    database.py          # Database connection and session management
+    
+    services/            # Core business logic
+      __init__.py
+      extraction.py      # Document parsing logic (e.g., Marker usage)
+      tax_logic.py       # Pure deterministic tax calculation functions
+      reporting.py       # PDF generation logic (ReportLab)
+      
+    agent/               # AI Orchestration
+      __init__.py
+      tools.py           # LangChain tools wrapping the services
+      graph.py           # LangGraph state graph definition
+      llm.py             # LLM client setup and prompt templates
+      
+  pyproject.toml         # Project metadata and dependencies (uv)
+  uv.lock                # Dependency lock file
+  .env                   # Environment variables (not committed)
+```
+
+## Frontend (`frontend/`)
+
+The frontend is a Next.js (App Router) application.
+
+```text
+frontend/
+  app/                   # Next.js App Router
+    layout.tsx           # Root layout
+    page.tsx             # Landing page with UploadForm
+    result/
+      [sessionId]/
+        page.tsx         # Result page showing summary and download
+        
+  components/            # React components
+    ui/                  # Reusable UI components (shadcn/ui)
+    UploadForm.tsx       # Component for file upload handling
+    SummaryCard.tsx      # Component for displaying tax calculation results
+    
+  package.json           # Frontend dependencies
+  tsconfig.json          # TypeScript configuration
+  tailwind.config.ts     # Tailwind CSS configuration
+```
+
+## Conventions
+- **Services**: Pure business logic should reside in `app/services/`.
+- **Agent**: AI-specific logic (tools, graph) resides in `app/agent/`.
+- **Database**: All DB models in `app/models.py`.
+- **Schemas**: All Pydantic models in `app/schemas.py`.

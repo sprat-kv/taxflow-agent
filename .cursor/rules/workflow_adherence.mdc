@@ -1,0 +1,22 @@
+---
+description: Enforces strict adherence to user instructions, prohibits unauthorized command execution, and ensures phase-by-phase implementation.
+globs: 
+---
+# Project Workflow & Phase Adherence
+
+**Applies to:** All tasks and interactions.
+
+## 1. Strict Instruction Following
+- **Execute EXACTLY what is requested.** Do not perform actions that are not relevant or strictly required for the current task.
+- **No Unrequested Changes.** Do not refactor, optimize, or add "nice-to-have" features unless explicitly asked.
+
+## 2. No Automatic Execution
+- **Do NOT autorun scripts or commands.** 
+- You must always propose the command and wait for the user to approve/execute it (or approve the tool call). 
+- Do not assume permission to run build scripts, database migrations, or dependency installations without explicit prompt.
+
+## 3. Phase-Based Implementation
+- **Strictly follow `PROJECT_PHASE_IMPLEMENTATION.md`.**
+- **Stay in the current phase.** Do not implement features from future phases.
+- **Do not move to the next phase** until explicitly instructed to do so by the user.
+- Focus on the skeleton and immediate requirements of the current phase only.
