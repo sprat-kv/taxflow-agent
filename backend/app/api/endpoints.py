@@ -89,6 +89,19 @@ async def get_session(session_id: str, db: Session = Depends(get_db)):
 
 @router.post("/documents/{document_id}/extract", response_model=ExtractionResultRead)
 async def extract_document(document_id: str, db: Session = Depends(get_db)):
+    """
+    Extract structured data from a tax document using Azure Document Intelligence.
+    
+    Args:
+        document_id: UUID of the uploaded document
+        db: Database session
+        
+    Returns:
+        ExtractionResultRead containing extracted tax data
+        
+    Raises:
+        HTTPException: If document not found or extraction fails
+    """
     db_doc = db.query(Document).filter(Document.id == document_id).first()
     if not db_doc:
         raise HTTPException(status_code=404, detail="Document not found")
