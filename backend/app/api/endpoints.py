@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 from app.db.session import get_db
-from app.models.models import UploadSession, Document
-from app.schemas.schemas import UploadResponse, DocumentRead
+from app.models.models import UploadSession, Document, ExtractionResult
+from app.schemas.schemas import UploadResponse, DocumentRead, ExtractionResultRead
 from app.core.config import settings
+from app.services.extraction import process_document
 
 router = APIRouter()
 
@@ -85,4 +86,38 @@ async def get_session(session_id: str, db: Session = Depends(get_db)):
         session_id=db_session.id,
         documents=[DocumentRead.model_validate(doc) for doc in db_session.documents]
     )
+
+@router.post("/documents/{document_id}/extract", response_model=ExtractionResultRead)
+async def extract_document(document_id: str, db: Session = Depends(get_db)):
+    db_doc = db.query(Document).filter(Document.id == document_id).first()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    if not os.path.exists(db_doc.file_path):
+        raise HTTPException(status_code=404, detail="PDF file not found on disk")
+    
+    try:
+        doc_type, extracted_data, warnings = process_document(db_doc.file_path)
+        
+        extraction_result = ExtractionResult(
+            document_id=document_id,
+            document_type=doc_type,
+            structured_data=extracted_data.model_dump(),
+            warnings="; ".join(warnings) if warnings else None
+        )
+        db.add(extraction_result)
+        db_doc.status = "parsed"
+        db.commit()
+        db.refresh(extraction_result)
+        
+        return ExtractionResultRead.model_validate(extraction_result)
+    
+    except ValueError as e:
+        db_doc.status = "error"
+        db.commit()
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        db_doc.status = "error"
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {str(e)}")
 
