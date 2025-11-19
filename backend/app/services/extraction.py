@@ -1,21 +1,28 @@
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Optional, Any
 from pathlib import Path
 from app.services.document_intelligence import get_document_intelligence_service
 from app.schemas.schemas import W2Data, NEC1099Data, INT1099Data
 
-def _get_field_value(fields: dict, field_name: str, value_attr: str = "content"):
+def _get_field_value(fields: dict, field_name: str, value_attr: str = "content") -> Optional[Any]:
+    """
+    Extract field value from Azure Document Intelligence response.
+    
+    Args:
+        fields: Dictionary of document fields
+        field_name: Name of the field to extract
+        value_attr: Attribute type to extract (value_number, value_string, value_object, value_array, content)
+        
+    Returns:
+        Extracted value or None if not found
+    """
     if field_name not in fields:
         return None
+    
     field = fields[field_name]
-    if value_attr == "value_number":
-        return getattr(field, "value_number", None)
-    elif value_attr == "value_string":
-        return getattr(field, "value_string", None)
-    elif value_attr == "value_object":
-        return getattr(field, "value_object", None)
-    return getattr(field, "content", None)
+    return getattr(field, value_attr, None)
 
 def map_w2_fields(fields: dict) -> W2Data:
+    """Map Azure W-2 response fields to W2Data schema."""
     employee = _get_field_value(fields, "Employee", "value_object")
     employer = _get_field_value(fields, "Employer", "value_object")
     
@@ -34,6 +41,7 @@ def map_w2_fields(fields: dict) -> W2Data:
     )
 
 def map_1099nec_fields(fields: dict) -> NEC1099Data:
+    """Map Azure 1099-NEC response fields to NEC1099Data schema."""
     payer = _get_field_value(fields, "Payer", "value_object")
     recipient = _get_field_value(fields, "Recipient", "value_object")
     
@@ -48,11 +56,14 @@ def map_1099nec_fields(fields: dict) -> NEC1099Data:
     )
 
 def map_1099int_fields(fields: dict) -> INT1099Data:
+    """Map Azure 1099-INT response fields to INT1099Data schema."""
     payer = _get_field_value(fields, "Payer", "value_object")
     recipient = _get_field_value(fields, "Recipient", "value_object")
     
     transactions = _get_field_value(fields, "Transactions", "value_array")
-    first_transaction = transactions[0].value_object if transactions and len(transactions) > 0 else {}
+    first_transaction = None
+    if transactions and len(transactions) > 0:
+        first_transaction = getattr(transactions[0], "value_object", None)
     
     return INT1099Data(
         tax_year=_get_field_value(fields, "TaxYear", "value_string"),
@@ -60,15 +71,49 @@ def map_1099int_fields(fields: dict) -> INT1099Data:
         payer_name=_get_field_value(payer, "Name", "value_string") if payer else None,
         recipient_tin=_get_field_value(recipient, "TIN", "value_string") if recipient else None,
         recipient_name=_get_field_value(recipient, "Name", "value_string") if recipient else None,
-        interest_income=_get_field_value(first_transaction, "Box1", "value_number"),
-        early_withdrawal_penalty=_get_field_value(first_transaction, "Box2", "value_number"),
-        interest_on_us_savings_bonds=_get_field_value(first_transaction, "Box3", "value_number"),
-        federal_income_tax_withheld=_get_field_value(first_transaction, "Box4", "value_number"),
-        investment_expenses=_get_field_value(first_transaction, "Box5", "value_number"),
-        foreign_tax_paid=_get_field_value(first_transaction, "Box6", "value_number")
+        interest_income=_get_field_value(first_transaction, "Box1", "value_number") if first_transaction else None,
+        early_withdrawal_penalty=_get_field_value(first_transaction, "Box2", "value_number") if first_transaction else None,
+        interest_on_us_savings_bonds=_get_field_value(first_transaction, "Box3", "value_number") if first_transaction else None,
+        federal_income_tax_withheld=_get_field_value(first_transaction, "Box4", "value_number") if first_transaction else None,
+        investment_expenses=_get_field_value(first_transaction, "Box5", "value_number") if first_transaction else None,
+        foreign_tax_paid=_get_field_value(first_transaction, "Box6", "value_number") if first_transaction else None
     )
 
+def _normalize_document_type(doc_type_raw: str) -> str:
+    """Normalize Azure document type by removing year suffix."""
+    if doc_type_raw == "other":
+        return "other"
+    
+    if "." in doc_type_raw:
+        parts = doc_type_raw.split(".")
+        return ".".join(parts[:3]) if len(parts) >= 3 else doc_type_raw
+    
+    return doc_type_raw
+
+def _infer_document_type_from_fields(fields: dict) -> str:
+    """Infer document type when Azure returns 'other'."""
+    if "WagesTipsAndOtherCompensation" in fields or "Employee" in fields:
+        return "tax.us.w2"
+    elif "Box1" in fields:
+        if "InterestIncome" in str(fields) or "Transactions" in fields:
+            return "tax.us.1099INT"
+        return "tax.us.1099NEC"
+    
+    raise ValueError("Cannot determine document type from 'other' classification")
+
 def process_document(pdf_path: str | Path) -> Tuple[str, Union[W2Data, NEC1099Data, INT1099Data], List[str]]:
+    """
+    Process a tax document PDF through Azure Document Intelligence.
+    
+    Args:
+        pdf_path: Path to PDF file
+        
+    Returns:
+        Tuple of (document_type, extracted_data, warnings)
+        
+    Raises:
+        ValueError: If document cannot be processed or type is unsupported
+    """
     warnings = []
     
     with open(pdf_path, "rb") as f:
@@ -81,16 +126,31 @@ def process_document(pdf_path: str | Path) -> Tuple[str, Union[W2Data, NEC1099Da
         raise ValueError("No documents detected in PDF")
     
     doc = result.documents[0]
-    doc_type = doc.doc_type
+    doc_type_raw = doc.doc_type
     
-    if doc_type == "tax.us.w2":
-        extracted_data = map_w2_fields(doc.fields)
-    elif doc_type == "tax.us.1099NEC":
-        extracted_data = map_1099nec_fields(doc.fields)
-    elif doc_type == "tax.us.1099INT":
-        extracted_data = map_1099int_fields(doc.fields)
-    else:
-        raise ValueError(f"Unsupported document type: {doc_type}")
+    if not hasattr(doc, 'fields') or doc.fields is None:
+        raise ValueError(f"No fields extracted from document type: {doc_type_raw}")
     
-    return doc_type, extracted_data, warnings
+    doc_type = _normalize_document_type(doc_type_raw)
+    
+    if doc_type == "other":
+        warnings.append("Document classified as 'other', attempting to infer type from fields")
+        doc_type = _infer_document_type_from_fields(doc.fields)
+    
+    try:
+        if doc_type.startswith("tax.us.w2"):
+            extracted_data = map_w2_fields(doc.fields)
+            normalized_type = "tax.us.w2"
+        elif doc_type.startswith("tax.us.1099NEC"):
+            extracted_data = map_1099nec_fields(doc.fields)
+            normalized_type = "tax.us.1099NEC"
+        elif doc_type.startswith("tax.us.1099INT"):
+            extracted_data = map_1099int_fields(doc.fields)
+            normalized_type = "tax.us.1099INT"
+        else:
+            raise ValueError(f"Unsupported document type: {doc_type_raw}")
+    except Exception as e:
+        raise ValueError(f"Error mapping fields for {doc_type_raw}: {str(e)}")
+    
+    return normalized_type, extracted_data, warnings
 
