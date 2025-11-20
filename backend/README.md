@@ -1,0 +1,502 @@
+# Tax Processing Backend
+
+AI-powered tax return preparation backend built with FastAPI, LangGraph, and Azure Document Intelligence. Automates document extraction, data aggregation, tax calculation, and Form 1040 generation.
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Core Components](#core-components)
+- [Environment Setup](#environment-setup)
+- [Database Schema](#database-schema)
+- [API Endpoints](#api-endpoints)
+- [Agent Workflow](#agent-workflow)
+- [Testing](#testing)
+- [Features](#features)
+- [Development Notes](#development-notes)
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client (Frontend)                        │
+└────────────────────────────┬────────────────────────────────────┘
+                              │ HTTP/REST
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      FastAPI Application                          │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              API Layer (app/api/)                         │   │
+│  │  • Upload Sessions  • Document Extraction                │   │
+│  │  • Tax Calculation  • Workflow Processing                │   │
+│  │  • Form 1040 Generation                                   │   │
+│  └──────────────┬───────────────────────────────────────────┘   │
+│                 │                                                 │
+│  ┌──────────────▼───────────────────────────────────────────┐   │
+│  │          Service Layer (app/services/)                   │   │
+│  │  • DocumentService      • TaxService                      │   │
+│  │  • TaxAggregator        • Form1040Service                 │   │
+│  │  • SessionService       • WorkflowStateService            │   │
+│  └──────────────┬───────────────────────────────────────────┘   │
+│                 │                                                 │
+│  ┌──────────────▼───────────────────────────────────────────┐   │
+│  │         Agent Layer (app/agent/)                          │   │
+│  │  ┌────────────────────────────────────────────────────┐  │   │
+│  │  │         LangGraph State Machine                     │  │   │
+│  │  │  Aggregate → Calculate → Validate                   │  │   │
+│  │  └────────────────────────────────────────────────────┘  │   │
+│  │  • graph.py    • nodes.py    • state.py    • llm.py      │   │
+│  └──────────────┬───────────────────────────────────────────┘   │
+│                 │                                                 │
+└─────────────────┼─────────────────────────────────────────────────┘
+                  │
+      ┌───────────┼───────────┬──────────────┬──────────────┐
+      │           │           │              │              │
+      ▼           ▼           ▼              ▼              ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+│ SQLite   │ │  Azure   │ │  OpenAI  │ │  File    │ │  PDF     │
+│ Database │ │ Document │ │   LLM    │ │ Storage  │ │ Generator│
+│          │ │Intelligence│ │          │ │          │ │          │
+└──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘
+```
+
+### Data Flow
+
+1. **Upload**: Client uploads tax documents (W-2, 1099-NEC, 1099-INT) → stored in `storage/uploads/`
+2. **Extract**: Azure Document Intelligence extracts structured data → saved to `ExtractionResult`
+3. **Aggregate**: Service layer aggregates financial data from all documents
+4. **Process**: LangGraph agent orchestrates workflow (check missing info → calculate → validate)
+5. **Calculate**: Tax rules engine computes tax liability using 2024 IRS brackets
+6. **Generate**: Form 1040 PDF filled with calculated values → saved to `storage/reports/`
+
+## Tech Stack
+
+### Core Framework
+- **FastAPI** (0.121.2+) - Modern Python web framework with automatic API documentation
+- **Uvicorn** - ASGI server for production deployment
+- **Pydantic** (2.12.4+) - Data validation and settings management
+
+### AI & Orchestration
+- **LangChain** (1.0.8+) - LLM integration framework
+- **LangGraph** (1.0.3+) - State machine for multi-step agent workflows
+- **LangChain OpenAI** (1.0.3+) - OpenAI GPT model integration
+
+### Document Processing
+- **Azure Document Intelligence** - Prebuilt tax document model (`prebuilt-tax.us`)
+  - Supports W-2, 1099-NEC, 1099-INT extraction
+- **PyPDF** (6.3.0+) - PDF manipulation for Form 1040 generation
+- **pdfplumber** (0.11.8+) - PDF text extraction utilities
+
+### Database
+- **SQLAlchemy** (2.0.44+) - ORM for database operations
+- **SQLite** - Development database (configurable for production)
+
+### Development Tools
+- **uv** - Fast Python package manager and project manager
+- **python-dotenv** - Environment variable management
+
+## Project Structure
+
+```
+backend/
+├── app/
+│   ├── __init__.py
+│   ├── main.py                    # FastAPI app entry point
+│   │
+│   ├── api/                       # API Layer
+│   │   ├── __init__.py
+│   │   └── endpoints.py          # REST API route handlers
+│   │
+│   ├── agent/                     # AI Orchestration
+│   │   ├── __init__.py
+│   │   ├── graph.py              # LangGraph state machine definition
+│   │   ├── nodes.py              # Workflow nodes (aggregate, calculate, validate)
+│   │   ├── state.py              # TypedDict state definition
+│   │   └── llm.py                # LLM client and prompts
+│   │
+│   ├── core/                      # Configuration
+│   │   ├── __init__.py
+│   │   └── config.py              # Settings and environment variables
+│   │
+│   ├── db/                        # Database
+│   │   ├── __init__.py
+│   │   ├── base.py               # SQLAlchemy Base
+│   │   └── session.py             # Database session management
+│   │
+│   ├── models/                    # Data Layer
+│   │   ├── __init__.py
+│   │   └── models.py              # SQLAlchemy ORM models
+│   │
+│   ├── schemas/                   # Validation Layer
+│   │   ├── __init__.py
+│   │   └── schemas.py             # Pydantic request/response models
+│   │
+│   └── services/                  # Business Logic Layer
+│       ├── __init__.py
+│       ├── document_intelligence.py  # Azure Document Intelligence wrapper
+│       ├── document_service.py       # Document extraction orchestration
+│       ├── extraction.py             # Document parsing utilities
+│       ├── form_1040_service.py      # Form 1040 PDF generation
+│       ├── session_service.py         # Upload session management
+│       ├── tax_aggregator.py          # Financial data aggregation
+│       ├── tax_rules.py              # 2024 IRS tax calculation rules
+│       ├── tax_service.py            # Tax calculation orchestration
+│       └── workflow_state_service.py  # Workflow state persistence
+│
+├── scripts/                       # Utility scripts
+│   ├── test_tax_calculations.py   # Unit tests for tax math
+│   ├── test_workflow_e2e.py       # End-to-end workflow tests
+│   ├── test_extraction_api.py     # Extraction testing
+│   └── ...                        # Other utility scripts
+│
+├── storage/                       # File storage
+│   ├── forms/                     # PDF templates (f1040.pdf)
+│   ├── uploads/                   # Uploaded tax documents
+│   └── reports/                   # Generated Form 1040 PDFs
+│
+├── tests/                         # Unit tests
+│   └── test_tax_rules.py
+│
+├── pyproject.toml                 # Project dependencies (uv)
+├── uv.lock                        # Dependency lock file
+├── tax_app.db                     # SQLite database (generated)
+└── README.md                      # This file
+```
+
+## Core Components
+
+### API Endpoints (`app/api/endpoints.py`)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/sessions` | POST | Create upload session and upload PDF files |
+| `/api/sessions/{session_id}` | GET | Get upload session details |
+| `/api/documents/{document_id}/extract` | POST | Extract structured data from document |
+| `/api/tax/calculate/{session_id}` | POST | Direct tax calculation (bypasses agent) |
+| `/api/sessions/{session_id}/process` | POST | Process session through LangGraph workflow |
+| `/api/reports/{session_id}/1040` | POST | Generate filled Form 1040 PDF |
+
+### Agent Workflow (`app/agent/`)
+
+**LangGraph State Machine** with three nodes:
+
+1. **Aggregator Node** (`aggregator_node`)
+   - Aggregates financial data from all extraction results
+   - Validates mandatory fields (name, SSN, address, filing status, tax year)
+   - Checks for missing information
+   - Returns `waiting_for_user` status if data incomplete
+
+2. **Calculator Node** (`calculator_node`)
+   - Computes tax liability using 2024 IRS tax brackets
+   - Calculates standard deduction based on filing status
+   - Determines refund or amount owed
+
+3. **Validator Node** (`validator_node`)
+   - LLM-powered validation of calculation results
+   - Identifies anomalies or missing data
+   - Generates warnings for review
+
+**State Definition** (`TaxState`):
+```python
+{
+    "session_id": str,
+    "filing_status": Optional[str],
+    "tax_year": Optional[str],
+    "personal_info": Dict[str, Any],
+    "user_inputs": Dict[str, Any],
+    "aggregated_data": Optional[Dict[str, float]],
+    "calculation_result": Optional[Dict[str, Any]],
+    "validation_result": Optional[str],
+    "missing_fields": List[str],
+    "warnings": List[str],
+    "status": str
+}
+```
+
+### Document Processing (`app/services/`)
+
+- **DocumentIntelligenceService**: Wraps Azure Document Intelligence API
+  - Uses `prebuilt-tax.us` model for W-2, 1099-NEC, 1099-INT extraction
+- **DocumentService**: Orchestrates document upload, storage, and extraction
+- **ExtractionService**: Parses Azure extraction results into structured schemas
+
+### Tax Calculations (`app/services/tax_rules.py`)
+
+**2024 US Federal Tax Rules**:
+- Standard Deductions:
+  - Single: $14,600
+  - Married Filing Jointly: $29,200
+  - Head of Household: $21,900
+- Progressive Tax Brackets (10%, 12%, 22%, 24%, 32%, 35%, 37%)
+- Supports all three filing statuses
+
+**Calculation Flow**:
+```
+Gross Income = Wages + Interest + 1099-NEC Income
+Taxable Income = Gross Income - Standard Deduction
+Tax Liability = Progressive bracket calculation
+Refund/Owed = Tax Liability - Total Withholding
+```
+
+### Models (`app/models/models.py`)
+
+- **UploadSession**: Session tracking for document uploads
+- **Document**: Individual uploaded PDF files
+- **ExtractionResult**: Structured data extracted from documents
+- **TaxResult**: Calculated tax results for a session
+- **WorkflowState**: Persistent state for LangGraph workflow
+- **Report**: Generated PDF reports (Form 1040)
+
+## Environment Setup
+
+### Prerequisites
+
+- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) package manager
+- Azure Document Intelligence account
+- OpenAI API key
+
+### Installation
+
+1. **Clone repository and navigate to backend**:
+```bash
+cd backend
+```
+
+2. **Install dependencies with uv**:
+```bash
+uv sync
+```
+
+3. **Create `.env` file**:
+```bash
+# Database
+DATABASE_URL=sqlite:///./tax_app.db
+
+# Azure Document Intelligence
+DOCUMENTINTELLIGENCE_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+DOCUMENTINTELLIGENCE_API_KEY=your-api-key
+
+# OpenAI
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o-mini
+
+# Environment
+ENV=dev
+PROJECT_NAME=Tax Processing Agent
+```
+
+4. **Initialize database** (tables auto-created on first run):
+```bash
+uv run python -c "from app.main import app; from app.db.session import Base, engine; Base.metadata.create_all(bind=engine)"
+```
+
+5. **Run development server**:
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+Server runs on `http://localhost:8000`
+
+### API Documentation
+
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Database Schema
+
+### Tables
+
+**upload_sessions**
+- `id` (String, PK) - UUID session identifier
+- `created_at` (DateTime) - Session creation timestamp
+- `status` (String) - Session status (pending, processing, complete)
+
+**documents**
+- `id` (String, PK) - UUID document identifier
+- `session_id` (String, FK) - Reference to upload_sessions
+- `filename` (String) - Original filename
+- `file_path` (String) - Storage path on disk
+- `file_size` (Integer) - File size in bytes
+- `upload_timestamp` (DateTime) - Upload timestamp
+- `status` (String) - Document status
+
+**extraction_results**
+- `id` (String, PK) - UUID extraction identifier
+- `document_id` (String, FK, Unique) - Reference to documents
+- `document_type` (String) - Type (tax.us.w2, tax.us.1099NEC, tax.us.1099INT)
+- `structured_data` (JSON) - Extracted data as JSON
+- `warnings` (Text) - Extraction warnings
+- `created_at` (DateTime) - Extraction timestamp
+
+**tax_results**
+- `id` (String, PK) - UUID result identifier
+- `session_id` (String, FK, Unique) - Reference to upload_sessions
+- `filing_status` (String) - Filing status used
+- `gross_income` (JSON) - Gross income breakdown
+- `standard_deduction` (JSON) - Deduction details
+- `taxable_income` (JSON) - Taxable income details
+- `tax_liability` (JSON) - Tax liability breakdown
+- `total_withholding` (JSON) - Withholding totals
+- `refund_or_owed` (JSON) - Final refund/owed amount
+- `status` (String) - Calculation status
+- `created_at` (DateTime) - Calculation timestamp
+
+**workflow_states**
+- `id` (String, PK) - UUID state identifier
+- `session_id` (String, FK, Unique) - Reference to upload_sessions
+- `state_data` (JSON) - Complete LangGraph state
+- `status` (String) - Workflow status
+- `updated_at` (DateTime) - Last update timestamp
+
+**reports**
+- `id` (String, PK) - UUID report identifier
+- `session_id` (String, FK) - Reference to upload_sessions
+- `report_type` (String) - Report type (e.g., "form_1040")
+- `file_path` (String) - PDF file path
+- `created_at` (DateTime) - Generation timestamp
+
+### Relationships
+
+```
+UploadSession (1) ──< (N) Document
+Document (1) ──< (1) ExtractionResult
+UploadSession (1) ──< (1) TaxResult
+UploadSession (1) ──< (1) WorkflowState
+UploadSession (1) ──< (N) Report
+```
+
+## Testing
+
+### Unit Tests
+
+Test tax calculation logic independently:
+```bash
+cd backend
+uv run python scripts/test_tax_calculations.py
+```
+
+Tests cover:
+- All filing statuses (single, married_filing_jointly, head_of_household)
+- W-2 only scenarios
+- W-2 + 1099-NEC scenarios
+- W-2 + 1099-INT scenarios
+- Refund and tax owed cases
+
+### End-to-End Tests
+
+Test complete workflow (requires running API server):
+```bash
+# Terminal 1: Start server
+uv run uvicorn app.main:app --reload
+
+# Terminal 2: Run E2E tests
+cd backend
+uv run python scripts/test_workflow_e2e.py
+```
+
+Tests cover:
+- Document upload and extraction
+- Agent workflow with missing data handling
+- Tax calculation and validation
+- User input override functionality
+
+### Test Scripts
+
+See `scripts/README.md` for detailed testing documentation.
+
+## Features
+
+### ✅ Implemented
+
+- **Multi-Document Upload**: Upload multiple tax documents (W-2, 1099-NEC, 1099-INT) in a single session
+- **Azure Document Intelligence**: Automatic extraction of structured data from tax forms
+- **Data Aggregation**: Combines income and withholding from all documents
+- **Tax Calculation**: 2024 US Federal tax calculation with progressive brackets
+- **LangGraph Agent Workflow**: Multi-step processing with state management
+- **Missing Data Detection**: Agent identifies and requests missing mandatory fields
+- **Form 1040 Generation**: Fills official IRS Form 1040 PDF with calculated values
+- **Workflow State Persistence**: Resume processing across API calls
+- **LLM Validation**: AI-powered validation of calculation results
+
+### 📋 Supported Document Types
+
+- **W-2**: Wage and tax statements
+- **1099-NEC**: Nonemployee compensation
+- **1099-INT**: Interest income
+
+### 📋 Supported Filing Statuses
+
+- Single
+- Married Filing Jointly
+- Head of Household
+
+### 📋 Tax Year Support
+
+- **2024** (current implementation)
+
+## Development Notes
+
+### Architecture Principles
+
+- **Layered Architecture**: API → Service → Data layers with clear separation
+- **Service Layer Pattern**: Business logic isolated in services, reusable across endpoints
+- **State Machine**: LangGraph provides structured workflow with conditional routing
+- **Type Safety**: Pydantic schemas for request/response validation
+- **Database Abstraction**: SQLAlchemy ORM for database operations
+
+### Key Design Decisions
+
+1. **LangGraph for Workflow**: Enables complex multi-step processing with state persistence
+2. **Azure Document Intelligence**: Prebuilt tax model reduces custom extraction logic
+3. **SQLite for Development**: Easy setup, can be swapped for PostgreSQL in production
+4. **Form 1040 Field Mapping**: Direct PDF field manipulation using PyPDF for accuracy
+
+### Environment Variables
+
+Required environment variables (see `.env` example above):
+- `DOCUMENTINTELLIGENCE_ENDPOINT`: Azure resource endpoint
+- `DOCUMENTINTELLIGENCE_API_KEY`: Azure API key
+- `OPENAI_API_KEY`: OpenAI API key for LLM validation
+- `OPENAI_MODEL`: Model name (default: `gpt-4o-mini`)
+- `DATABASE_URL`: Database connection string
+
+### File Storage
+
+- **Uploads**: `storage/uploads/{session_id}/` - Original uploaded PDFs
+- **Forms**: `storage/forms/` - PDF templates (f1040.pdf)
+- **Reports**: `storage/reports/{session_id}/` - Generated Form 1040 PDFs
+
+### Production Considerations
+
+1. **Database**: Replace SQLite with PostgreSQL for production
+2. **File Storage**: Consider cloud storage (Azure Blob, S3) for scalability
+3. **Authentication**: Add API key or OAuth authentication
+4. **Rate Limiting**: Implement rate limiting for API endpoints
+5. **Error Handling**: Enhanced error logging and monitoring
+6. **Migrations**: Use Alembic for database migrations
+7. **Caching**: Consider Redis for workflow state caching
+8. **Background Jobs**: Use Celery or similar for long-running tasks
+
+### Known Limitations
+
+- Only supports 2024 tax year
+- Standard deduction only (no itemized deductions)
+- Limited to W-2, 1099-NEC, and 1099-INT income sources
+- No support for tax credits beyond basic calculations
+- Form 1040 generation uses field mapping that may need updates for form changes
+
+### Contributing
+
+1. Follow the layered architecture pattern
+2. Add Pydantic schemas for new endpoints
+3. Keep business logic in services, not API endpoints
+4. Write tests for new tax calculation logic
+5. Update this README for significant changes
+
+---
+
+**Version**: 0.1.0  
+**License**: See project root LICENSE file
+
