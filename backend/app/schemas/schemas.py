@@ -76,3 +76,37 @@ class ExtractionResultRead(BaseModel):
     class Config:
         from_attributes = True
 
+class TaxInput(BaseModel):
+    """Aggregated tax input data from all documents."""
+    total_wages: float = 0.0
+    total_interest: float = 0.0
+    total_nec_income: float = 0.0
+    total_withholding: float = 0.0
+    
+class TaxCalculationResult(BaseModel):
+    """Result of tax calculation."""
+    gross_income: float
+    standard_deduction: float
+    taxable_income: float
+    tax_liability: float
+    total_withholding: float
+    refund_or_owed: float
+    status: str
+
+class ProcessSessionRequest(BaseModel):
+    """Request to process a session with optional user inputs."""
+    filing_status: Optional[str] = None
+    tax_year: Optional[str] = None
+    personal_info: Optional[dict] = None
+    user_inputs: Optional[dict] = None
+
+class ProcessSessionResponse(BaseModel):
+    """Response from session processing."""
+    status: str
+    message: Optional[str] = None
+    missing_fields: Optional[List[str]] = None
+    aggregated_data: Optional[dict] = None
+    calculation_result: Optional[dict] = None
+    validation_result: Optional[str] = None
+    warnings: Optional[List[str]] = None
+

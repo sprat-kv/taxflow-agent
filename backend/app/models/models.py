@@ -9,10 +9,10 @@ class UploadSession(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    status = Column(String, default="pending")  # pending, processing, completed, failed
+    status = Column(String, default="pending")
     
-    # Relationship to documents
     documents = relationship("Document", back_populates="session", cascade="all, delete-orphan")
+    tax_result = relationship("TaxResult", back_populates="session", uselist=False, cascade="all, delete-orphan")
 
 class Document(Base):
     __tablename__ = "documents"
@@ -39,4 +39,32 @@ class ExtractionResult(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     
     document = relationship("Document", back_populates="extraction_result")
+
+class TaxResult(Base):
+    __tablename__ = "tax_results"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String, ForeignKey("upload_sessions.id"), unique=True)
+    filing_status = Column(String)
+    gross_income = Column(JSON)
+    standard_deduction = Column(JSON)
+    taxable_income = Column(JSON)
+    tax_liability = Column(JSON)
+    total_withholding = Column(JSON)
+    refund_or_owed = Column(JSON)
+    status = Column(String)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    
+    session = relationship("UploadSession")
+
+class WorkflowState(Base):
+    __tablename__ = "workflow_states"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String, ForeignKey("upload_sessions.id"), unique=True)
+    state_data = Column(JSON)
+    status = Column(String)
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    
+    session = relationship("UploadSession")
 
