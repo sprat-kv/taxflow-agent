@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Body
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.db.session import get_db
@@ -14,6 +15,8 @@ from app.services.document_service import DocumentService
 from app.services.tax_service import TaxService
 from app.services.tax_rules import FilingStatus
 from app.agent.graph import run_tax_workflow
+from app.services.form_1040_service import Form1040Service
+from app.models.models import Report
 
 router = APIRouter()
 
@@ -150,4 +153,47 @@ async def process_session(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Workflow failed: {str(e)}")
+
+@router.post("/reports/{session_id}/1040")
+async def generate_form_1040(
+    session_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate Form 1040 PDF for a completed session.
+    
+    Args:
+        session_id: Upload session ID
+        db: Database session
+        
+    Returns:
+        FileResponse with the filled Form 1040 PDF
+        
+    Raises:
+        HTTPException: If session not found or PDF generation fails
+    """
+    try:
+        # Generate the PDF
+        pdf_path = Form1040Service.generate_1040(session_id, db)
+        
+        # Save report record to database
+        report = Report(
+            session_id=session_id,
+            report_type="form_1040",
+            file_path=str(pdf_path)
+        )
+        db.add(report)
+        db.commit()
+        
+        # Return PDF as downloadable file
+        return FileResponse(
+            path=str(pdf_path),
+            media_type="application/pdf",
+            filename="Form_1040.pdf"
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
