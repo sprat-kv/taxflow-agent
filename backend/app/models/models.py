@@ -68,3 +68,14 @@ class WorkflowState(Base):
     
     session = relationship("UploadSession")
 
+class Report(Base):
+    __tablename__ = "reports"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String, ForeignKey("upload_sessions.id"))
+    report_type = Column(String)  # e.g., "form_1040"
+    file_path = Column(String)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    
+    session = relationship("UploadSession")
+
