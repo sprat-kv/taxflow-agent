@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     DOCUMENTINTELLIGENCE_ENDPOINT: str
     DOCUMENTINTELLIGENCE_API_KEY: str
     
+    OPENAI_API_KEY: str
+    OPENAI_MODEL: str = "gpt-5-mini"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
