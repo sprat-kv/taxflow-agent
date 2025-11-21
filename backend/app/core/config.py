@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DOCUMENTINTELLIGENCE_API_KEY: str
     
     OPENAI_API_KEY: str
-    OPENAI_MODEL: str = "gpt-5-mini"
+    OPENAI_MODEL: str = "gpt-4o-mini"
     
     class Config:
         env_file = ".env"
