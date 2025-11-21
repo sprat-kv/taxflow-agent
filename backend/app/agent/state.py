@@ -4,7 +4,7 @@ class AgentLog(TypedDict):
     timestamp: str
     node: str
     message: str
-    type: str
+    type: str  # "info", "success", "warning", "error"
 
 class TaxState(TypedDict):
     session_id: str
@@ -15,10 +15,12 @@ class TaxState(TypedDict):
     aggregated_data: Optional[Dict[str, float]]
     calculation_result: Optional[Dict[str, Any]]
     validation_result: Optional[str]
+    advisor_feedback: Optional[str]
     
     missing_fields: List[str]
     warnings: List[str]
     status: str
-    current_step: str
+    
     logs: List[AgentLog]
+    current_step: str
 

@@ -1,9 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Body
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-import json
-import asyncio
 from app.db.session import get_db
 from app.schemas.schemas import (
     UploadResponse, 
@@ -102,16 +100,16 @@ async def process_session(
                 message="Please provide the following information to continue",
                 missing_fields=final_state.get("missing_fields", []),
                 warnings=final_state.get("warnings", []),
-                current_step=final_state.get("current_step"),
-                logs=final_state.get("logs", [])
+                logs=final_state.get("logs", []),
+                current_step=final_state.get("current_step")
             )
         elif final_state["status"] == "error":
             return ProcessSessionResponse(
                 status="error",
                 message="An error occurred during processing",
                 warnings=final_state.get("warnings", []),
-                current_step=final_state.get("current_step"),
-                logs=final_state.get("logs", [])
+                logs=final_state.get("logs", []),
+                current_step=final_state.get("current_step")
             )
         else:
             return ProcessSessionResponse(
@@ -120,9 +118,10 @@ async def process_session(
                 aggregated_data=final_state.get("aggregated_data"),
                 calculation_result=final_state.get("calculation_result"),
                 validation_result=final_state.get("validation_result"),
+                advisor_feedback=final_state.get("advisor_feedback"),
                 warnings=final_state.get("warnings", []),
-                current_step=final_state.get("current_step"),
-                logs=final_state.get("logs", [])
+                logs=final_state.get("logs", []),
+                current_step=final_state.get("current_step")
             )
             
     except ValueError as e:
@@ -164,81 +163,4 @@ async def delete_session(session_id: str, db: Session = Depends(get_db)):
         return {"message": "Session data deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
-
-@router.post("/sessions/{session_id}/process/stream")
-async def stream_workflow(
-    session_id: str,
-    request: ProcessSessionRequest = Body(...),
-    db: Session = Depends(get_db)
-):
-    from app.agent.graph import create_tax_graph
-    from app.services.workflow_state_service import WorkflowStateService
-    from app.agent.state import TaxState
-    
-    try:
-        existing_state = WorkflowStateService.get_state(db, session_id)
-        
-        if existing_state:
-            if request.filing_status:
-                existing_state["filing_status"] = request.filing_status
-            if request.tax_year:
-                existing_state["tax_year"] = request.tax_year
-            if request.personal_info:
-                if "personal_info" not in existing_state:
-                    existing_state["personal_info"] = {}
-                existing_state["personal_info"].update(request.personal_info)
-            if request.user_inputs:
-                existing_state["user_inputs"].update(request.user_inputs)
-            initial_state = existing_state
-        else:
-            initial_state: TaxState = {
-                "session_id": session_id,
-                "filing_status": request.filing_status,
-                "tax_year": request.tax_year,
-                "personal_info": request.personal_info or {},
-                "user_inputs": request.user_inputs or {},
-                "aggregated_data": None,
-                "calculation_result": None,
-                "validation_result": None,
-                "missing_fields": [],
-                "warnings": [],
-                "status": "initialized",
-                "current_step": "initialized",
-                "logs": []
-            }
-        
-        async def event_generator():
-            graph = create_tax_graph(db)
-            
-            for event in graph.stream(initial_state):
-                await asyncio.sleep(0.1)
-                
-                node_name = list(event.keys())[0]
-                node_state = event[node_name]
-                
-                stream_data = {
-                    "node": node_name,
-                    "status": node_state.get("status", "processing"),
-                    "current_step": node_state.get("current_step", ""),
-                    "logs": node_state.get("logs", []),
-                    "missing_fields": node_state.get("missing_fields", []),
-                    "warnings": node_state.get("warnings", []),
-                    "aggregated_data": node_state.get("aggregated_data"),
-                    "calculation_result": node_state.get("calculation_result"),
-                    "validation_result": node_state.get("validation_result")
-                }
-                
-                yield f"data: {json.dumps(stream_data)}\n\n"
-            
-            final_state = node_state
-            WorkflowStateService.save_state(db, session_id, final_state)
-            
-            yield f"data: {json.dumps({'status': 'complete', 'final_state': final_state})}\n\n"
-        
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
-        
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Streaming workflow failed: {str(e)}")
 

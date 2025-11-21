@@ -40,8 +40,9 @@ class Form1040Service:
             WorkflowState.session_id == session_id
         ).first()
         
-        if not workflow_state or workflow_state.status != "validated":
-            raise ValueError(f"Session {session_id} has not completed tax calculation")
+        allowed_statuses = {"validated", "complete"}
+        if not workflow_state or workflow_state.status not in allowed_statuses:
+            raise ValueError(f"Session {session_id} must reach validation before generating Form 1040")
         
         state_data = workflow_state.state_data
         personal_info = state_data.get("personal_info", {})
