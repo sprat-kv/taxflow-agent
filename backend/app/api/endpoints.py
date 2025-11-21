@@ -118,6 +118,7 @@ async def process_session(
                 aggregated_data=final_state.get("aggregated_data"),
                 calculation_result=final_state.get("calculation_result"),
                 validation_result=final_state.get("validation_result"),
+                advisor_feedback=final_state.get("advisor_feedback"),
                 warnings=final_state.get("warnings", []),
                 logs=final_state.get("logs", []),
                 current_step=final_state.get("current_step")

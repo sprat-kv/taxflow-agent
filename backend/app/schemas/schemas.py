@@ -215,6 +215,7 @@ class ProcessSessionResponse(BaseModel):
     aggregated_data: Optional[dict] = None
     calculation_result: Optional[dict] = None
     validation_result: Optional[str] = None
+    advisor_feedback: Optional[str] = None
     warnings: Optional[List[str]] = None
     logs: Optional[List[AgentLog]] = None
     current_step: Optional[str] = None
