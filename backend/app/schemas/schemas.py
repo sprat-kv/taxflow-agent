@@ -216,6 +216,6 @@ class ProcessSessionResponse(BaseModel):
     calculation_result: Optional[dict] = None
     validation_result: Optional[str] = None
     warnings: Optional[List[str]] = None
-    current_step: Optional[str] = None
     logs: Optional[List[AgentLog]] = None
+    current_step: Optional[str] = None
 
