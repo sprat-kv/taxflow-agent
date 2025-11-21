@@ -1,40 +1,39 @@
-"""
-LangGraph nodes for tax processing workflow.
-"""
 from sqlalchemy.orm import Session
+from datetime import datetime, UTC
 from app.agent.state import TaxState
 from app.services.tax_aggregator import aggregate_tax_data
 from app.services.tax_service import TaxService
 from app.agent.llm import get_llm, VALIDATOR_PROMPT
 
 def aggregator_node(state: TaxState, db: Session) -> TaxState:
-    """
-    Aggregate financial data from extraction results and check for missing information.
-    
-    Args:
-        state: Current graph state
-        db: Database session
-        
-    Returns:
-        Updated state with aggregated_data or missing_fields
-    """
     from app.models.models import UploadSession
     from app.schemas.schemas import W2Data, NEC1099Data, INT1099Data
     
-    missing_fields = []
+    state["current_step"] = "aggregating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "aggregator",
+        "message": "Starting data aggregation and validation...",
+        "type": "info"
+    })
     
-    # Initialize personal_info if not present
+    missing_fields = []
     personal_info = state.get("personal_info", {})
     
-    # --- 1. Check for Universally Mandatory Fields ---
-    
-    # Extract Name/SSN/Address from W-2 if available and missing in state
     extracted_name = None
     extracted_ssn = None
-    extracted_address = None # Placeholder - currently schemas don't fully parse address structure
+    extracted_address = None
     
     db_session = db.query(UploadSession).filter(UploadSession.id == state["session_id"]).first()
     if db_session:
+        doc_count = len(db_session.documents)
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Found {doc_count} document(s) in session. Extracting financial data...",
+            "type": "info"
+        })
+        
         extracted_years = set()
         for document in db_session.documents:
             if document.extraction_result:
@@ -69,13 +68,10 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
                 except Exception:
                     pass
         
-        # Auto-fill personal info from extraction if not provided by user
         if extracted_name and not personal_info.get("filer_name"):
             personal_info["filer_name"] = extracted_name
         if extracted_ssn and not personal_info.get("filer_ssn"):
             personal_info["filer_ssn"] = extracted_ssn
-        
-        # Tax Year Logic
         if extracted_years:
             if len(extracted_years) > 1:
                 state["warnings"].append(f"Multiple tax years detected in documents: {', '.join(sorted(extracted_years))}. Please specify which year to use.")
@@ -104,13 +100,17 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         state["status"] = "error"
         return state
     
-    # If any mandatory fields are missing, stop here and ask user
     if missing_fields:
         state["missing_fields"] = missing_fields
         state["status"] = "waiting_for_user"
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Missing critical information: {', '.join(missing_fields)}. User input required.",
+            "type": "warning"
+        })
         return state
 
-    # --- 2. Aggregation & Financial Logic ---
     try:
         tax_input = aggregate_tax_data(state["session_id"], db)
         
@@ -134,6 +134,13 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         
         gross_income = aggregated["total_wages"] + aggregated["total_interest"] + aggregated["total_nec_income"]
         
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Extracted income: Wages ${aggregated['total_wages']:,.2f}, Interest ${aggregated['total_interest']:,.2f}, 1099-NEC ${aggregated['total_nec_income']:,.2f}",
+            "type": "success"
+        })
+        
         if gross_income == 0:
             missing_fields.append("income_data")
             state["warnings"].append("No income data found in extracted documents. Please provide income information.")
@@ -143,8 +150,20 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         if missing_fields:
             state["missing_fields"] = missing_fields
             state["status"] = "waiting_for_user"
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "aggregator",
+                "message": "Aggregation incomplete. Awaiting user input.",
+                "type": "warning"
+            })
         else:
             state["status"] = "aggregated"
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "aggregator",
+                "message": "Data aggregation complete. All mandatory fields validated.",
+                "type": "success"
+            })
         
     except Exception as e:
         state["warnings"].append(f"Aggregation error: {str(e)}")
@@ -153,16 +172,14 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def calculator_node(state: TaxState, db: Session) -> TaxState:
-    """
-    Calculate tax liability and refund/owed.
+    state["current_step"] = "calculating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "calculator",
+        "message": f"Applying 2024 tax rules for filing status: {state['filing_status']}...",
+        "type": "info"
+    })
     
-    Args:
-        state: Current graph state
-        db: Database session
-        
-    Returns:
-        Updated state with calculation_result
-    """
     try:
         result = TaxService.calculate_tax(
             state["session_id"],
@@ -181,6 +198,13 @@ def calculator_node(state: TaxState, db: Session) -> TaxState:
         }
         state["status"] = "calculated"
         
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "calculator",
+            "message": f"Calculation complete. Gross Income: ${result.gross_income:,.2f}, Tax Liability: ${result.tax_liability:,.2f}",
+            "type": "success"
+        })
+        
     except Exception as e:
         state["warnings"].append(f"Calculation error: {str(e)}")
         state["status"] = "error"
@@ -188,18 +212,23 @@ def calculator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def validator_node(state: TaxState) -> TaxState:
-    """
-    Validate tax calculation using LLM.
+    state["current_step"] = "validating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "validator",
+        "message": "AI Auditor reviewing calculation results...",
+        "type": "info"
+    })
     
-    Args:
-        state: Current graph state
-        
-    Returns:
-        Updated state with validation_result
-    """
     if not state.get("calculation_result"):
         state["warnings"].append("No calculation result to validate")
         state["status"] = "error"
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "validator",
+            "message": "Validation failed: No calculation results found.",
+            "type": "error"
+        })
         return state
     
     try:
@@ -224,6 +253,19 @@ def validator_node(state: TaxState) -> TaxState:
         
         if "WARNING" in validation_text or "MISSING" in validation_text:
             state["warnings"].append(validation_text)
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "validator",
+                "message": f"Audit Warning: {validation_text}",
+                "type": "warning"
+            })
+        else:
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "validator",
+                "message": "Audit Passed: Calculation results validated successfully. No anomalies detected.",
+                "type": "success"
+            })
         
         state["status"] = "validated"
         

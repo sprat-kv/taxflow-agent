@@ -2,8 +2,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables."""
-    
     PROJECT_NAME: str = "Tax Processing Agent"
     ENV: str = "dev"
     DATABASE_URL: str = "sqlite:///./tax_app.db"

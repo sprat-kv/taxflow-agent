@@ -4,7 +4,6 @@ from app.core.config import settings
 from app.db.session import engine, Base
 from app.api.endpoints import router as api_router
 
-# Create tables (for dev only, use Alembic for prod)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -13,13 +12,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Configure CORS
+# Configure CORS to allow access from anywhere
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Must be False when using allow_origins=["*"]
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 app.include_router(api_router, prefix="/api")

@@ -5,23 +5,8 @@ from app.schemas.schemas import ExtractionResultRead
 from app.services.extraction import process_document
 
 class DocumentService:
-    """Service for document processing and extraction."""
-    
     @staticmethod
     def extract_document_data(db: Session, document_id: str) -> ExtractionResultRead:
-        """
-        Extract structured data from a tax document.
-        
-        Args:
-            db: Database session
-            document_id: UUID of the document
-            
-        Returns:
-            ExtractionResultRead containing extracted data
-            
-        Raises:
-            ValueError: If document not found or extraction fails
-        """
         db_doc = db.query(Document).filter(Document.id == document_id).first()
         if not db_doc:
             raise ValueError("Document not found")
