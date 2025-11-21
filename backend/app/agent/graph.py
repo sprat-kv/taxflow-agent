@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, END
 from sqlalchemy.orm import Session
 from typing import Literal
 from app.agent.state import TaxState
-from app.agent.nodes import aggregator_node, calculator_node, validator_node
+from app.agent.nodes import aggregator_node, calculator_node, validator_node, advisor_node
 
 def should_continue(state: TaxState) -> Literal["calculate", "end"]:
     if state["status"] == "waiting_for_user":
@@ -18,6 +18,7 @@ def create_tax_graph(db: Session) -> StateGraph:
     workflow.add_node("aggregate", lambda state: aggregator_node(state, db))
     workflow.add_node("calculate", lambda state: calculator_node(state, db))
     workflow.add_node("validate", lambda state: validator_node(state))
+    workflow.add_node("advise", lambda state: advisor_node(state))
     
     workflow.set_entry_point("aggregate")
     
@@ -31,7 +32,8 @@ def create_tax_graph(db: Session) -> StateGraph:
     )
     
     workflow.add_edge("calculate", "validate")
-    workflow.add_edge("validate", END)
+    workflow.add_edge("validate", "advise")
+    workflow.add_edge("advise", END)
     
     return workflow.compile()
 
@@ -70,8 +72,11 @@ def run_tax_workflow(
             "aggregated_data": None,
             "calculation_result": None,
             "validation_result": None,
+            "advisor_feedback": None,
             "missing_fields": [],
             "warnings": [],
+            "logs": [],
+            "current_step": "initialized",
             "status": "initialized"
         }
     

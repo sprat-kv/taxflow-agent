@@ -15,6 +15,7 @@ class TaxState(TypedDict):
     aggregated_data: Optional[Dict[str, float]]
     calculation_result: Optional[Dict[str, Any]]
     validation_result: Optional[str]
+    advisor_feedback: Optional[str]
     
     missing_fields: List[str]
     warnings: List[str]

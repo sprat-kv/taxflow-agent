@@ -6,7 +6,7 @@ import time
 
 # Configuration
 BASE_URL = "http://localhost:8000/api"
-SAMPLE_DOCS_DIR = Path("sample_docs")
+SAMPLE_DOCS_DIR = Path("../sample_docs")
 W2_FILE = SAMPLE_DOCS_DIR / "PYW224S_EE.pdf"
 
 def test_agent_logs():
@@ -85,16 +85,26 @@ def test_agent_logs():
         has_aggregator = any(l['node'] == 'aggregator' for l in logs)
         has_calculator = any(l['node'] == 'calculator' for l in logs)
         has_validator = any(l['node'] == 'validator' for l in logs)
+        has_advisor = any(l['node'] == 'advisor' for l in logs)
         
-        if has_aggregator and has_calculator and has_validator:
-            print("\nSUCCESS: Logs from all nodes (aggregator, calculator, validator) detected!")
+        if has_aggregator and has_calculator and has_validator and has_advisor:
+            print("\nSUCCESS: Logs from all nodes (aggregator, calculator, validator, advisor) detected!")
         else:
             print("\nWARNING: Missing logs from some nodes.")
             if not has_aggregator: print("   - Missing Aggregator logs")
             if not has_calculator: print("   - Missing Calculator logs")
             if not has_validator: print("   - Missing Validator logs")
+            if not has_advisor: print("   - Missing Advisor logs")
             
-        # Cleanup
+        # 5. Check Advisor Feedback
+        feedback = result.get("advisor_feedback")
+        if feedback:
+            print("\nAdvisor Feedback Received:")
+            print("-" * 60)
+            print(feedback)
+            print("-" * 60)
+        else:
+            print("\nError: No advisor feedback in response.")
         requests.delete(f"{BASE_URL}/sessions/{session_id}")
         print(f"\nSession {session_id} cleaned up.")
             

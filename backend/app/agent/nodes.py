@@ -5,6 +5,36 @@ from app.services.tax_aggregator import aggregate_tax_data
 from app.services.tax_service import TaxService
 from app.agent.llm import get_llm, VALIDATOR_PROMPT
 
+ADVISOR_PROMPT = """
+Role: You are a friendly, knowledgeable, and empathetic AI Financial Advisor.
+
+Task: Provide a personalized summary and actionable next steps based on the user's tax calculation.
+
+User Data:
+- Name: {filer_name}
+- Total Income: ${gross_income}
+- Outcome: {status} of ${refund_or_owed}
+- Income Sources: {sources}
+- Filing Status: {filing_status}
+
+Guidelines:
+1. **Tone**: Warm, professional, and encouraging.
+2. **The Result**: Clearly state if they are getting a refund or owe money.
+   - If Refund: Celebrate! Suggest a smart way to use it (savings, debt, investment).
+   - If Owed: Be supportive. Provide the immediate next step (e.g., "Pay via IRS Direct Pay").
+3. **The Tip**: Provide ONE specific, high-impact tax tip for next year based on their profile.
+   - If Freelance (1099): Mention estimated quarterly payments or expense tracking.
+   - If W-2 only: Mention adjusting W-4 withholding.
+   - If High Income: Mention 401(k)/IRA contributions.
+
+Output Format:
+[Warm Greeting & Result Summary]
+
+[Actionable Next Step / Payment Instruction]
+
+Pro Tip: [The Specific Advice]
+"""
+
 def log_event(state: TaxState, node: str, message: str, type: str = "info"):
     if "logs" not in state:
         state["logs"] = []
@@ -238,5 +268,48 @@ def validator_node(state: TaxState) -> TaxState:
         log_event(state, "validator", f"Validation failed: {str(e)}", "error")
         state["status"] = "error"
     
+    return state
+
+def advisor_node(state: TaxState) -> TaxState:
+    state["current_step"] = "advising"
+    log_event(state, "advisor", "Generating personalized financial advice...", "info")
+    
+    if state.get("status") == "error":
+        return state
+        
+    try:
+        llm = get_llm()
+        calc = state["calculation_result"]
+        personal_info = state["personal_info"]
+        aggregated = state["aggregated_data"]
+        
+        # Determine income sources
+        sources = []
+        if aggregated.get("total_wages", 0) > 0: sources.append("W-2 (Employment)")
+        if aggregated.get("total_nec_income", 0) > 0: sources.append("1099-NEC (Freelance)")
+        if aggregated.get("total_interest", 0) > 0: sources.append("1099-INT (Interest)")
+        sources_str = ", ".join(sources) if sources else "Unknown"
+        
+        prompt = ADVISOR_PROMPT.format(
+            filer_name=personal_info.get("filer_name", "Valued Client"),
+            gross_income=f"{calc['gross_income']:,.2f}",
+            status=calc["status"].title(),
+            refund_or_owed=f"{calc['refund_or_owed']:,.2f}",
+            sources=sources_str,
+            filing_status=state["filing_status"]
+        )
+        
+        response = llm.invoke(prompt)
+        state["advisor_feedback"] = response.content
+        
+        log_event(state, "advisor", "Advice generated successfully.", "success")
+        state["status"] = "complete"
+        
+    except Exception as e:
+        state["warnings"].append(f"Advisor error: {str(e)}")
+        log_event(state, "advisor", f"Failed to generate advice: {str(e)}", "warning")
+        # Don't fail the whole workflow just because advice failed
+        state["status"] = "complete" 
+        
     return state
 
