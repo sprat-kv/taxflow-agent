@@ -29,6 +29,7 @@ class UploadSessionRead(UploadSessionBase):
 class UploadResponse(BaseModel):
     session_id: str
     documents: List[DocumentRead]
+    calculation_result: Optional[dict] = None
 
 class W2Data(BaseModel):
     tax_year: Optional[str] = None
