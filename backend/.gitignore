@@ -9,4 +9,4 @@ tax_app.db
 .env.local
 .env.*.local
 *.env
-.env
+*.env.*
