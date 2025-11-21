@@ -72,7 +72,9 @@ def run_tax_workflow(
             "validation_result": None,
             "missing_fields": [],
             "warnings": [],
-            "status": "initialized"
+            "status": "initialized",
+            "current_step": "initialized",
+            "logs": []
         }
     
     graph = create_tax_graph(db)

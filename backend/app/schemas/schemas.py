@@ -202,6 +202,12 @@ class ProcessSessionRequest(BaseModel):
     personal_info: Optional[PersonalInfo] = None
     user_inputs: Optional[UserInputs] = None
 
+class AgentLog(BaseModel):
+    timestamp: str
+    node: str
+    message: str
+    type: str
+
 class ProcessSessionResponse(BaseModel):
     status: str
     message: Optional[str] = None
@@ -210,4 +216,6 @@ class ProcessSessionResponse(BaseModel):
     calculation_result: Optional[dict] = None
     validation_result: Optional[str] = None
     warnings: Optional[List[str]] = None
+    current_step: Optional[str] = None
+    logs: Optional[List[AgentLog]] = None
 
