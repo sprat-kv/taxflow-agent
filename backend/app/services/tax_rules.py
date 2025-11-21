@@ -1,21 +1,14 @@
-"""
-2024 US Federal Tax Rules and Constants.
-Contains tax brackets, deductions, and calculation logic.
-"""
 from typing import Literal
 from decimal import Decimal
 
 FilingStatus = Literal["single", "married_filing_jointly", "head_of_household"]
 
-# 2024 Standard Deductions
 STANDARD_DEDUCTIONS = {
     "single": Decimal("14600"),
     "married_filing_jointly": Decimal("29200"),
     "head_of_household": Decimal("21900"),
 }
 
-# 2024 Tax Brackets (rate, upper_limit)
-# Format: [(rate, upper_limit), ...] where upper_limit is the max income for that bracket
 TAX_BRACKETS = {
     "single": [
         (Decimal("0.10"), Decimal("11600")),
@@ -47,53 +40,18 @@ TAX_BRACKETS = {
 }
 
 def get_standard_deduction(filing_status: FilingStatus) -> Decimal:
-    """
-    Get the standard deduction for a given filing status.
-    
-    Args:
-        filing_status: Filing status (single, married_filing_jointly, head_of_household)
-        
-    Returns:
-        Standard deduction amount
-        
-    Raises:
-        ValueError: If filing status is invalid
-    """
     if filing_status not in STANDARD_DEDUCTIONS:
         raise ValueError(f"Invalid filing status: {filing_status}")
     
     return STANDARD_DEDUCTIONS[filing_status]
 
 def calculate_taxable_income(gross_income: Decimal, filing_status: FilingStatus) -> Decimal:
-    """
-    Calculate taxable income by subtracting standard deduction from gross income.
-    
-    Args:
-        gross_income: Total gross income
-        filing_status: Filing status
-        
-    Returns:
-        Taxable income (minimum 0)
-    """
     standard_deduction = get_standard_deduction(filing_status)
     taxable_income = gross_income - standard_deduction
     
     return max(Decimal("0"), taxable_income)
 
 def calculate_tax_liability(taxable_income: Decimal, filing_status: FilingStatus) -> Decimal:
-    """
-    Calculate federal tax liability using progressive tax brackets.
-    
-    Args:
-        taxable_income: Taxable income after deductions
-        filing_status: Filing status
-        
-    Returns:
-        Total tax liability
-        
-    Raises:
-        ValueError: If filing status is invalid
-    """
     if filing_status not in TAX_BRACKETS:
         raise ValueError(f"Invalid filing status: {filing_status}")
     
@@ -124,16 +82,6 @@ def calculate_tax_liability(taxable_income: Decimal, filing_status: FilingStatus
     return total_tax.quantize(Decimal("0.01"))
 
 def calculate_refund_or_owed(tax_liability: Decimal, total_withholding: Decimal) -> tuple[Decimal, str]:
-    """
-    Calculate final refund or amount owed.
-    
-    Args:
-        tax_liability: Calculated tax liability
-        total_withholding: Total federal tax withheld
-        
-    Returns:
-        Tuple of (amount, status) where status is "refund" or "owed"
-    """
     balance = tax_liability - total_withholding
     
     if balance < 0:

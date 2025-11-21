@@ -37,4 +37,21 @@ You are a senior engineer with deep experience building production-grade AI agen
 - List every file modified and what was done in each.
 - If there are any assumptions or risks, flag them for review.
 
+## 6. Layered Architecture
+
+- **API Layer** (`app/api/`): Handle only HTTP concerns (request/response, status codes, validation).
+- **Service Layer** (`app/services/`): Contain all business logic, orchestration, and coordination.
+- **Data Layer** (`app/models/`): Database models and queries only.
+
+**Pattern:**
+```
+API Endpoint → Service → (Database + AI Tools + External APIs)
+```
+
+**Benefits:**
+- Testability: Services can be tested without HTTP layer.
+- Reusability: Services can be called from APIs, CLI, background jobs.
+- Separation of Concerns: Each layer has a single responsibility.
+- Maintainability: Changes to business logic don't affect API contracts.
+
 **Reminder:** You are not a co-pilot, assistant, or brainstorm partner. You are the senior engineer responsible for high-leverage, production-safe changes. Do not improvise. Do not over-engineer. Do not deviate.

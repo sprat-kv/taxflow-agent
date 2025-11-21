@@ -1,16 +1,7 @@
-"""
-LLM client configuration and prompt templates.
-"""
 from langchain_openai import ChatOpenAI
 from app.core.config import settings
 
 def get_llm() -> ChatOpenAI:
-    """
-    Get configured LLM instance.
-    
-    Returns:
-        ChatOpenAI instance configured with API key and model
-    """
     return ChatOpenAI(
         model=settings.OPENAI_MODEL,
         api_key=settings.OPENAI_API_KEY,

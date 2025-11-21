@@ -1,0 +1,21 @@
+{
+  "file": "1099_nec_2.pdf",
+  "session_id": "aa98fc2b-1599-48b9-b3ab-36b4d377adb4",
+  "document_id": "f4323e7e-1ffc-4115-b1b4-8eaf3e5923a7",
+  "extraction": {
+    "id": "67622b3b-97de-4b6a-ad46-82f7b8d9328f",
+    "document_id": "f4323e7e-1ffc-4115-b1b4-8eaf3e5923a7",
+    "document_type": "tax.us.1099NEC",
+    "structured_data": {
+      "tax_year": "2024",
+      "payer_tin": "45-6789123",
+      "payer_name": "Riverside Analytics Inc.",
+      "recipient_tin": "987-65-4321",
+      "recipient_name": "Kelly Tessa. Contractor",
+      "nonemployee_compensation": 18250.5,
+      "federal_income_tax_withheld": 1825.0
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:24:59.242804"
+  }
+}

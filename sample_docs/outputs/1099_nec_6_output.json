@@ -1,0 +1,21 @@
+{
+  "file": "1099_nec_6.pdf",
+  "session_id": "a13401a6-745a-4990-b9a6-565c209add42",
+  "document_id": "670d5305-7b32-4ca2-ae33-91f443a71054",
+  "extraction": {
+    "id": "fe335f85-b6f9-456e-9778-00ce4164b71b",
+    "document_id": "670d5305-7b32-4ca2-ae33-91f443a71054",
+    "document_type": "tax.us.1099NEC",
+    "structured_data": {
+      "tax_year": "2022",
+      "payer_tin": "11-0000000",
+      "payer_name": "company name, Inc",
+      "recipient_tin": "222-33-4444",
+      "recipient_name": "Recipient 1",
+      "nonemployee_compensation": 5000.0,
+      "federal_income_tax_withheld": null
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:25:50.502623"
+  }
+}

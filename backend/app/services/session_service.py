@@ -11,20 +11,8 @@ UPLOAD_DIR = "storage/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class SessionService:
-    """Service for managing upload sessions."""
-    
     @staticmethod
     def create_session_with_files(db: Session, files: List[UploadFile]) -> UploadResponse:
-        """
-        Create a new upload session and save PDF files.
-        
-        Args:
-            db: Database session
-            files: List of uploaded files
-            
-        Returns:
-            UploadResponse containing session ID and uploaded documents
-        """
         session_id = str(uuid.uuid4())
         db_session = UploadSession(id=session_id, status="pending")
         db.add(db_session)
@@ -37,6 +25,12 @@ class SessionService:
         uploaded_documents = []
 
         for file in files:
+            header = file.file.read(5)
+            file.file.seek(0)
+            
+            if header[:4] != b'%PDF':
+                continue
+            
             if file.content_type != "application/pdf":
                 continue
             
@@ -60,8 +54,7 @@ class SessionService:
                 db.add(db_doc)
                 uploaded_documents.append(db_doc)
                 
-            except Exception as e:
-                print(f"Error saving file {file.filename}: {e}")
+            except Exception:
                 continue
 
         db.commit()
@@ -74,19 +67,6 @@ class SessionService:
     
     @staticmethod
     def get_session(db: Session, session_id: str) -> UploadResponse:
-        """
-        Retrieve an upload session by ID.
-        
-        Args:
-            db: Database session
-            session_id: UUID of the session
-            
-        Returns:
-            UploadResponse containing session details
-            
-        Raises:
-            ValueError: If session not found
-        """
         db_session = db.query(UploadSession).filter(UploadSession.id == session_id).first()
         if not db_session:
             raise ValueError("Session not found")
@@ -95,4 +75,21 @@ class SessionService:
             session_id=db_session.id,
             documents=[DocumentRead.model_validate(doc) for doc in db_session.documents]
         )
+    
+    @staticmethod
+    def delete_session(db: Session, session_id: str):
+        session = db.query(UploadSession).filter(UploadSession.id == session_id).first()
+        if not session:
+            return
+        
+        session_dir = os.path.join(UPLOAD_DIR, session_id)
+        if os.path.exists(session_dir):
+            shutil.rmtree(session_dir)
+        
+        report_dir = os.path.join("storage/reports", session_id)
+        if os.path.exists(report_dir):
+            shutil.rmtree(report_dir)
+        
+        db.delete(session)
+        db.commit()
 

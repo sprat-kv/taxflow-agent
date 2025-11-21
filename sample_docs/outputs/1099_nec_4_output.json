@@ -1,0 +1,21 @@
+{
+  "file": "1099_nec_4.pdf",
+  "session_id": "1d3e8592-d944-4d6f-8053-681d9754a86b",
+  "document_id": "04447d12-ec99-4ffe-8e4b-77d10108b16e",
+  "extraction": {
+    "id": "1327c2dd-b290-4500-9cfb-fde0ae717c4b",
+    "document_id": "04447d12-ec99-4ffe-8e4b-77d10108b16e",
+    "document_type": "tax.us.1099NEC",
+    "structured_data": {
+      "tax_year": "2024",
+      "payer_tin": "10-9920202",
+      "payer_name": "MICHAEL M JORDAN",
+      "recipient_tin": "101-42-0202",
+      "recipient_name": "CANNON TOOLS CO",
+      "nonemployee_compensation": 1000.0,
+      "federal_income_tax_withheld": 100.0
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:25:24.654310"
+  }
+}
