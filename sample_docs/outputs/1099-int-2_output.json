@@ -1,0 +1,5 @@
+{
+  "file": "1099-int-2.pdf",
+  "error": "400 Client Error: Bad Request for url: http://localhost:8000/api/documents/980779d9-86bf-4428-a0a9-03366bdeee7e/extract - {\"detail\":\"Cannot determine document type from 'other' classification\"}",
+  "error_type": "api_error"
+}

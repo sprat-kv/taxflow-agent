@@ -1,0 +1,25 @@
+{
+  "file": "1099-int3.pdf",
+  "session_id": "93466919-683a-41ad-9020-22c930c7b898",
+  "document_id": "9c025da8-9ebd-45c2-a718-bac0d1fed42e",
+  "extraction": {
+    "id": "26ad07f6-fda2-4342-9650-0ef1b2885ac4",
+    "document_id": "9c025da8-9ebd-45c2-a718-bac0d1fed42e",
+    "document_type": "tax.us.1099INT",
+    "structured_data": {
+      "tax_year": "2024",
+      "payer_tin": "94-12344321",
+      "payer_name": "Second Bank",
+      "recipient_tin": "321-45-6798",
+      "recipient_name": "Daniel Q Sample",
+      "interest_income": 3000.0,
+      "early_withdrawal_penalty": 50.0,
+      "interest_on_us_savings_bonds": null,
+      "federal_income_tax_withheld": 0.0,
+      "investment_expenses": null,
+      "foreign_tax_paid": null
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T20:46:55.538128"
+  }
+}

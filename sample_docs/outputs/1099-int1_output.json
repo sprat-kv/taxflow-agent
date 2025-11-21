@@ -1,0 +1,25 @@
+{
+  "file": "1099-int1.pdf",
+  "session_id": "49f6db0d-35f2-4776-8d79-b2b90e117891",
+  "document_id": "16a29e91-b7cd-4b95-8ab1-420aa8eff9e6",
+  "extraction": {
+    "id": "ff553f98-2726-4609-a4d8-c6726313132a",
+    "document_id": "16a29e91-b7cd-4b95-8ab1-420aa8eff9e6",
+    "document_type": "tax.us.1099INT",
+    "structured_data": {
+      "tax_year": "2024",
+      "payer_tin": "94-1234567",
+      "payer_name": "First Bank",
+      "recipient_tin": "123-45-6789",
+      "recipient_name": "John Q Sample",
+      "interest_income": 485.0,
+      "early_withdrawal_penalty": null,
+      "interest_on_us_savings_bonds": null,
+      "federal_income_tax_withheld": 0.0,
+      "investment_expenses": null,
+      "foreign_tax_paid": null
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T20:46:30.447828"
+  }
+}

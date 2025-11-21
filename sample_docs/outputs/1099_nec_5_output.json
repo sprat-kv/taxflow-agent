@@ -1,0 +1,21 @@
+{
+  "file": "1099_nec_5.pdf",
+  "session_id": "fb84f49b-3f86-471a-b4f4-59ebca214b9c",
+  "document_id": "4d2a1aca-14e2-4467-b6ca-2d7b4909092f",
+  "extraction": {
+    "id": "e02b02cd-2f94-46d0-bb4d-b45ea112471a",
+    "document_id": "4d2a1aca-14e2-4467-b6ca-2d7b4909092f",
+    "document_type": "tax.us.1099NEC",
+    "structured_data": {
+      "tax_year": "2021",
+      "payer_tin": "12-3456789",
+      "payer_name": "Business Company",
+      "recipient_tin": "123-45-6789",
+      "recipient_name": "Peter Payer",
+      "nonemployee_compensation": 12345.0,
+      "federal_income_tax_withheld": null
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:25:37.767655"
+  }
+}

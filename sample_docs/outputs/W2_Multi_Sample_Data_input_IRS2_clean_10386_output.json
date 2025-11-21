@@ -1,0 +1,25 @@
+{
+  "file": "W2_Multi_Sample_Data_input_IRS2_clean_10386.pdf",
+  "session_id": "378dc04e-da8e-4d3c-96eb-f8ee254a85ee",
+  "document_id": "ed788f00-7cb0-49a6-9856-e1863012661c",
+  "extraction": {
+    "id": "29526f73-07b1-4466-acdd-fa10c1ac4b0e",
+    "document_id": "ed788f00-7cb0-49a6-9856-e1863012661c",
+    "document_type": "tax.us.w2",
+    "structured_data": {
+      "tax_year": "2018",
+      "employee_ssn": "534-97-3460",
+      "employee_name": "Rebecca Peters",
+      "employer_ein": "20-5483796",
+      "employer_name": "Castillo Group PLC",
+      "wages_tips_other_compensation": 61367.28,
+      "federal_income_tax_withheld": 6381.6,
+      "social_security_wages": 69370.18,
+      "social_security_tax_withheld": 5306.82,
+      "medicare_wages_and_tips": 51423.35,
+      "medicare_tax_withheld": 1491.28
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:27:17.447513"
+  }
+}
