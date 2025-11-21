@@ -3,4 +3,10 @@ __pycache__/
 *.pyc
 storage/*
 tax_app.db
+
+# Environment variables (CRITICAL - Never commit these!)
+.env
+.env.local
+.env.*.local
+*.env
 .env
