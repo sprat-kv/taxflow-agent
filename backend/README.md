@@ -244,6 +244,35 @@ backend/
    - Identifies anomalies or missing data
    - Generates warnings for review
 
+## 🤖 Why an AI Agent? (vs. Simple Script)
+
+While a simple script works for perfect data, real-world tax processing is messy. The AI Agent (built with LangGraph) provides **reasoning, adaptability, and semantic validation** that a linear script cannot.
+
+### Comparison: Linear Script vs. AI Agent
+
+| Feature | 📜 Linear Script (Happy Path) | 🧠 AI Agent (Real World) |
+| :--- | :--- | :--- |
+| **Missing Data** | **Crashes.** "Error: 'filing_status' is None." | **Pauses & Asks.** "I see W-2 income, but I need your Filing Status. Are you Single or Married?" |
+| **Conflicting Info** | **Blindly Processes.** Uses whatever it finds first. | **Reasons.** "The W-2 says 'John Doe' but the 1099 says 'Jon Doe'. Is this the same person?" |
+| **Validation** | **Syntax Only.** Checks if `tax > 0`. | **Semantic Audit.** "Wait, $100k income with $0 tax is suspicious. Flagging for review." |
+
+### Agent Workflow Scenarios
+
+#### Scenario A: The "Happy Path" (Automated)
+1. **User** uploads W-2.
+2. **Agent** extracts data → Validates mandatory fields (All present).
+3. **Agent** calculates tax → Checks logic (Pass).
+4. **Agent** generates 1040 PDF.
+5. **Result:** Success (No user interaction needed).
+
+#### Scenario B: The "Human-in-the-Loop" (Intervention)
+1. **User** uploads 1099-NEC (Freelance).
+2. **Agent** extracts data → **Detects Missing Info**: "I need your Filing Status and Home Address."
+3. **Agent** pauses (`status: waiting_for_user`) and requests specific fields.
+4. **User** provides "Single" and "123 Main St".
+5. **Agent** resumes → Aggregates data → Calculates Tax.
+6. **Result:** Success (Collaborative completion).
+
 **State Definition** (`TaxState`):
 ```python
 {
