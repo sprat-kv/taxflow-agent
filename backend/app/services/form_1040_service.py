@@ -16,46 +16,46 @@ class Form1040Service:
     OUTPUT_DIR = Path("storage/reports")
     
     # Field mapping: Our data keys → PDF field names
-    # Based on 2024 Form 1040 structure
+    # Based on completed 1040_field_mapping_template.json
     FIELD_MAPPING = {
-        # Personal Information (Page 1, Top)
-        "filer_first_name": "f1_01[0]",
-        "filer_last_name": "f1_02[0]",
-        "filer_ssn": "f1_03[0]",
+        # Personal Information (Page 1)
+        "filer_first_name": "f1_04[0]",  # First name and middle initial
+        "filer_last_name": "f1_05[0]",   # Last name
+        "filer_ssn": "f1_06[0]",          # Social Security Number
         
-        # Address
-        "home_address": "f1_04[0]",  # Street address
-        "city_state_zip": "f1_05[0]",  # City, state, ZIP
+        # Address (Page 1)
+        "home_address": "f1_10[0]",       # Street address
+        "city": "f1_12[0]",                # City, town or post office
+        "state": "f1_13[0]",               # State
+        "zip": "f1_14[0]",                 # ZIP code
         
-        # Filing Status (Checkboxes - only one should be checked)
-        # We'll handle checkboxes separately
+        # Income Section (Page 1)
+        "line_1a": "f1_32[0]",   # Wages, tips, other compensation (W-2)
+        "line_1z": "f1_41[0]",   # Total wages
+        "line_2b": "f1_43[0]",   # Taxable interest
+        "line_8": "f1_53[0]",    # Additional income from Schedule 1 (1099-NEC)
+        "line_9": "f1_54[0]",    # Total income
         
-        # Income Section
-        "line_1a": "f1_10[0]",  # Wages (W-2 Box 1)
-        "line_2b": "f1_12[0]",  # Taxable interest
-        "line_8": "f1_19[0]",   # Other income (1099-NEC)
-        "line_9": "f1_20[0]",   # Total income
+        # Adjustments & Deductions (Page 1)
+        "line_11": "f1_56[0]",   # Adjusted Gross Income
+        "line_12": "f1_57[0]",   # Standard deduction
+        "line_15": "f1_60[0]",   # Taxable income
         
-        # Adjustments & Deductions
-        "line_11": "f1_22[0]",  # Adjusted Gross Income
-        "line_12": "f1_23[0]",  # Standard deduction
-        "line_15": "f1_26[0]",  # Taxable income
+        # Tax & Credits (Page 2)
+        "line_16": "f2_02[0]",   # Tax amount
+        "line_24": "f2_10[0]",   # Total tax
         
-        # Tax & Credits
-        "line_16": "f1_27[0]",  # Tax
-        "line_24": "f1_35[0]",  # Total tax
+        # Payments (Page 2)
+        "line_25a": "f2_11[0]",  # Federal income tax withheld from W-2
+        "line_33": "f2_22[0]",   # Total payments
         
-        # Payments
-        "line_25a": "f1_36[0]",  # Federal income tax withheld
-        "line_33": "f1_44[0]",  # Total payments
-        
-        # Refund or Amount Owed
-        "line_34": "f1_45[0]",  # Overpayment (refund)
-        "line_37": "f1_48[0]",  # Amount you owe
+        # Refund or Amount Owed (Page 2)
+        "line_34": "f2_23[0]",   # Amount you overpaid (refund)
+        "line_37": "f2_28[0]",   # Amount you owe
         
         # Signature Section (Page 2)
-        "occupation": "f2_08[0]",
-        "phone": "f2_09[0]",
+        "occupation": "f2_33[0]",  # Your occupation
+        "phone": "f2_37[0]",        # Phone number
     }
     
     @classmethod
@@ -120,14 +120,29 @@ class Form1040Service:
         first_name = name_parts[0] if name_parts else ""
         last_name = name_parts[1] if len(name_parts) > 1 else ""
         
-        # Parse address
+        # Parse address - assume "Street, City, State ZIP" or parse components
         full_address = personal_info.get("home_address", "")
-        # Simple split: assume "Street, City, State ZIP" format
-        address_parts = full_address.split(",", 1)
-        street = address_parts[0] if address_parts else full_address
-        city_state_zip = address_parts[1].strip() if len(address_parts) > 1 else ""
+        street = ""
+        city = ""
+        state = ""
+        zip_code = ""
         
-        # Calculate gross income (Line 9)
+        if "," in full_address:
+            parts = full_address.split(",")
+            street = parts[0].strip() if len(parts) > 0 else ""
+            if len(parts) > 1:
+                city = parts[1].strip()
+            if len(parts) > 2:
+                # Last part might be "State ZIP"
+                state_zip = parts[2].strip().split()
+                if len(state_zip) > 0:
+                    state = state_zip[0]
+                if len(state_zip) > 1:
+                    zip_code = state_zip[1]
+        else:
+            street = full_address
+        
+        # Get financial data
         total_wages = aggregated_data.get("total_wages", 0)
         total_interest = aggregated_data.get("total_interest", 0)
         total_nec_income = aggregated_data.get("total_nec_income", 0)
@@ -135,33 +150,40 @@ class Form1040Service:
         
         # Prepare field values
         field_values = {
+            # Personal info
             cls.FIELD_MAPPING["filer_first_name"]: first_name,
             cls.FIELD_MAPPING["filer_last_name"]: last_name,
             cls.FIELD_MAPPING["filer_ssn"]: personal_info.get("filer_ssn", ""),
-            cls.FIELD_MAPPING["home_address"]: street,
-            cls.FIELD_MAPPING["city_state_zip"]: city_state_zip,
             
-            # Income
+            # Address
+            cls.FIELD_MAPPING["home_address"]: street,
+            cls.FIELD_MAPPING["city"]: city,
+            cls.FIELD_MAPPING["state"]: state,
+            cls.FIELD_MAPPING["zip"]: zip_code,
+            
+            # Income - Page 1
             cls.FIELD_MAPPING["line_1a"]: f"{total_wages:,.2f}" if total_wages > 0 else "",
+            cls.FIELD_MAPPING["line_1z"]: f"{total_wages:,.2f}" if total_wages > 0 else "",  # Total wages = line 1a for simple case
             cls.FIELD_MAPPING["line_2b"]: f"{total_interest:,.2f}" if total_interest > 0 else "",
             cls.FIELD_MAPPING["line_8"]: f"{total_nec_income:,.2f}" if total_nec_income > 0 else "",
             cls.FIELD_MAPPING["line_9"]: f"{gross_income:,.2f}",
             
-            # Deductions
+            # Deductions - Page 1
             cls.FIELD_MAPPING["line_11"]: f"{gross_income:,.2f}",  # AGI = Gross (no adjustments)
             cls.FIELD_MAPPING["line_12"]: f"{calc_result.get('standard_deduction', 0):,.2f}",
             cls.FIELD_MAPPING["line_15"]: f"{calc_result.get('taxable_income', 0):,.2f}",
             
-            # Tax
+            # Tax - Page 2
             cls.FIELD_MAPPING["line_16"]: f"{calc_result.get('tax_liability', 0):,.2f}",
             cls.FIELD_MAPPING["line_24"]: f"{calc_result.get('tax_liability', 0):,.2f}",
             
-            # Payments
+            # Payments - Page 2
             cls.FIELD_MAPPING["line_25a"]: f"{calc_result.get('total_withholding', 0):,.2f}",
             cls.FIELD_MAPPING["line_33"]: f"{calc_result.get('total_withholding', 0):,.2f}",
             
-            # Refund or Owe
+            # Other - Page 2
             cls.FIELD_MAPPING["occupation"]: personal_info.get("occupation", ""),
+            cls.FIELD_MAPPING["phone"]: personal_info.get("phone", ""),
         }
         
         # Add refund or owed amount
@@ -194,27 +216,27 @@ class Form1040Service:
         # Clone document to preserve AcroForm structure
         writer.clone_reader_document_root(reader)
         
-        # Handle filing status checkbox (c1_01[0] through c1_05[0])
-        # Single=c1_01, MFJ=c1_02, MFS=c1_03, HOH=c1_04, QSS=c1_05
-        checkbox_map = {
-            "single": "c1_01[0]",
-            "married_filing_jointly": "c1_02[0]",
-            "married_filing_separately": "c1_03[0]",
-            "head_of_household": "c1_04[0]",
-            "qualifying_surviving_spouse": "c1_05[0]",
-        }
+        # NOTE: Skipping checkbox handling as requested by user
+        # Filing status checkboxes would go here if needed:
+        # checkbox_map = {
+        #     "single": "topmostSubform[0].Page1[0].c1_1[0]",
+        #     "married_filing_jointly": "topmostSubform[0].Page1[0].c1_2[0]",
+        #     etc...
+        # }
         
-        # Add checkbox to field_values if filing status is provided
-        if filing_status in checkbox_map:
-            checkbox_field = checkbox_map[filing_status]
-            field_values[checkbox_field] = "/Yes"
-        
-        # Update all form fields at once
+        # Update form fields on all pages
         if field_values:
+            # Page 1 fields
             writer.update_page_form_field_values(
-                writer.pages[0],  # Page 1
+                writer.pages[0],
                 field_values
             )
+            # Page 2 fields
+            if len(writer.pages) > 1:
+                writer.update_page_form_field_values(
+                    writer.pages[1],
+                    field_values
+                )
         
         # Save to output directory
         cls.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
