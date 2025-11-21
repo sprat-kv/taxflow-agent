@@ -16,6 +16,43 @@ interface TaxResult {
     refund_or_owed?: number;
     standard_deduction?: number;
     status?: string;
+    advisor_feedback?: string;
+}
+
+function AdvisorFeedback({ feedback, isRefund }: { feedback: string | null, isRefund: boolean }) {
+    if (!feedback) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className={`rounded-2xl p-6 border-l-4 shadow-md my-8 ${isRefund
+                    ? 'bg-green-50 border-green-500'
+                    : 'bg-amber-50 border-amber-500'
+                }`}
+        >
+            <div className="flex items-start">
+                <div className="flex-shrink-0">
+                    {isRefund ? (
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                    ) : (
+                        <div className="h-6 w-6 text-amber-600 font-bold text-xl">!</div>
+                    )}
+                </div>
+                <div className="ml-4 flex-1">
+                    <h3 className={`text-lg font-bold mb-2 ${isRefund ? 'text-green-900' : 'text-amber-900'
+                        }`}>
+                        💡 Your Personalized Tax Advice
+                    </h3>
+                    <div className={`prose prose-sm max-w-none whitespace-pre-line ${isRefund ? 'text-green-800' : 'text-amber-800'
+                        }`}>
+                        {feedback}
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
 }
 
 export default function SummaryPage({ params }: SummaryPageProps) {
@@ -23,32 +60,40 @@ export default function SummaryPage({ params }: SummaryPageProps) {
     const router = useRouter();
     const [taxData, setTaxData] = useState<TaxResult | null>(null);
     const [loading, setLoading] = useState(true);
+    const [advisorFeedback, setAdvisorFeedback] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchResults = async () => {
             try {
-                // 1. Try to get from LocalStorage first (fastest and ensures data from process step)
+                // 1. Try to get from LocalStorage first
                 const storedData = localStorage.getItem(`tax_result_${sessionId}`);
+                const storedFeedback = localStorage.getItem(`advisor_feedback_${sessionId}`);
+
+                if (storedFeedback) {
+                    setAdvisorFeedback(storedFeedback);
+                }
+
                 let localResult = null;
                 if (storedData) {
                     try {
                         localResult = JSON.parse(storedData);
-                        console.log('DEBUG: Found data in localStorage:', localResult);
                     } catch (e) {
                         console.error('Error parsing local storage data', e);
                     }
                 }
 
-                // 2. Fetch from API (source of truth)
+                // 2. Fetch from API
                 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const res = await fetch(`${apiBaseUrl}/api/sessions/${sessionId}`);
 
                 if (res.ok) {
                     const data = await res.json();
-                    console.log('DEBUG: Summary Page Session Data:', data);
-                    console.log('DEBUG: Calculation Result:', data.calculation_result);
 
-                    // Use API data if available, otherwise fallback to localStorage
+                    // Update feedback from API if available
+                    if (data.advisor_feedback) {
+                        setAdvisorFeedback(data.advisor_feedback);
+                    }
+
                     const result = data.calculation_result || localResult || {
                         gross_income: 0,
                         taxable_income: 0,
@@ -59,12 +104,10 @@ export default function SummaryPage({ params }: SummaryPageProps) {
                     };
                     setTaxData(result);
                 } else if (localResult) {
-                    // If API fails but we have local data, use it
                     setTaxData(localResult);
                 }
             } catch (error) {
                 console.error('Error fetching summary:', error);
-                // Fallback to local data if available
                 const storedData = localStorage.getItem(`tax_result_${sessionId}`);
                 if (storedData) {
                     setTaxData(JSON.parse(storedData));
@@ -76,6 +119,7 @@ export default function SummaryPage({ params }: SummaryPageProps) {
         fetchResults();
     }, [sessionId]);
 
+    // ... (handleDownload remains same) ...
     const handleDownload = async () => {
         try {
             const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -110,9 +154,6 @@ export default function SummaryPage({ params }: SummaryPageProps) {
         );
     }
 
-    // Determine refund status based on 'status' field or sign of refund_or_owed
-    // If status is explicit, use it. Otherwise assume positive = refund.
-    // Backend sends "owed" or "refund".
     const isRefund = taxData?.status === 'refund';
 
     return (
@@ -191,7 +232,10 @@ export default function SummaryPage({ params }: SummaryPageProps) {
                     </motion.div>
                 </div>
 
-                {/* Detailed Breakdown (Optional/Expandable) */}
+                {/* Advisor Feedback */}
+                <AdvisorFeedback feedback={advisorFeedback} isRefund={isRefund} />
+
+                {/* Detailed Breakdown */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -208,7 +252,6 @@ export default function SummaryPage({ params }: SummaryPageProps) {
                             <span className="text-gray-600">Standard Deduction</span>
                             <span className="font-medium text-gray-900">${taxData?.standard_deduction?.toLocaleString() || '0.00'}</span>
                         </div>
-                        {/* Add more fields as available in taxData */}
                     </div>
                 </motion.div>
 
