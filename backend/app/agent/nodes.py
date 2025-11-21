@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from datetime import datetime, UTC
 from app.agent.state import TaxState
 from app.services.tax_aggregator import aggregate_tax_data
 from app.services.tax_service import TaxService
@@ -7,6 +8,14 @@ from app.agent.llm import get_llm, VALIDATOR_PROMPT
 def aggregator_node(state: TaxState, db: Session) -> TaxState:
     from app.models.models import UploadSession
     from app.schemas.schemas import W2Data, NEC1099Data, INT1099Data
+    
+    state["current_step"] = "aggregating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "aggregator",
+        "message": "Starting data aggregation and validation...",
+        "type": "info"
+    })
     
     missing_fields = []
     personal_info = state.get("personal_info", {})
@@ -17,6 +26,14 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
     
     db_session = db.query(UploadSession).filter(UploadSession.id == state["session_id"]).first()
     if db_session:
+        doc_count = len(db_session.documents)
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Found {doc_count} document(s) in session. Extracting financial data...",
+            "type": "info"
+        })
+        
         extracted_years = set()
         for document in db_session.documents:
             if document.extraction_result:
@@ -86,6 +103,12 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
     if missing_fields:
         state["missing_fields"] = missing_fields
         state["status"] = "waiting_for_user"
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Missing critical information: {', '.join(missing_fields)}. User input required.",
+            "type": "warning"
+        })
         return state
 
     try:
@@ -111,6 +134,13 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         
         gross_income = aggregated["total_wages"] + aggregated["total_interest"] + aggregated["total_nec_income"]
         
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "aggregator",
+            "message": f"Extracted income: Wages ${aggregated['total_wages']:,.2f}, Interest ${aggregated['total_interest']:,.2f}, 1099-NEC ${aggregated['total_nec_income']:,.2f}",
+            "type": "success"
+        })
+        
         if gross_income == 0:
             missing_fields.append("income_data")
             state["warnings"].append("No income data found in extracted documents. Please provide income information.")
@@ -120,8 +150,20 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         if missing_fields:
             state["missing_fields"] = missing_fields
             state["status"] = "waiting_for_user"
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "aggregator",
+                "message": "Aggregation incomplete. Awaiting user input.",
+                "type": "warning"
+            })
         else:
             state["status"] = "aggregated"
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "aggregator",
+                "message": "Data aggregation complete. All mandatory fields validated.",
+                "type": "success"
+            })
         
     except Exception as e:
         state["warnings"].append(f"Aggregation error: {str(e)}")
@@ -130,6 +172,14 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def calculator_node(state: TaxState, db: Session) -> TaxState:
+    state["current_step"] = "calculating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "calculator",
+        "message": f"Applying 2024 tax rules for filing status: {state['filing_status']}...",
+        "type": "info"
+    })
+    
     try:
         result = TaxService.calculate_tax(
             state["session_id"],
@@ -148,6 +198,13 @@ def calculator_node(state: TaxState, db: Session) -> TaxState:
         }
         state["status"] = "calculated"
         
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "calculator",
+            "message": f"Calculation complete. Gross Income: ${result.gross_income:,.2f}, Tax Liability: ${result.tax_liability:,.2f}",
+            "type": "success"
+        })
+        
     except Exception as e:
         state["warnings"].append(f"Calculation error: {str(e)}")
         state["status"] = "error"
@@ -155,9 +212,23 @@ def calculator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def validator_node(state: TaxState) -> TaxState:
+    state["current_step"] = "validating"
+    state["logs"].append({
+        "timestamp": datetime.now(UTC).isoformat(),
+        "node": "validator",
+        "message": "AI Auditor reviewing calculation results...",
+        "type": "info"
+    })
+    
     if not state.get("calculation_result"):
         state["warnings"].append("No calculation result to validate")
         state["status"] = "error"
+        state["logs"].append({
+            "timestamp": datetime.now(UTC).isoformat(),
+            "node": "validator",
+            "message": "Validation failed: No calculation results found.",
+            "type": "error"
+        })
         return state
     
     try:
@@ -182,6 +253,19 @@ def validator_node(state: TaxState) -> TaxState:
         
         if "WARNING" in validation_text or "MISSING" in validation_text:
             state["warnings"].append(validation_text)
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "validator",
+                "message": f"Audit Warning: {validation_text}",
+                "type": "warning"
+            })
+        else:
+            state["logs"].append({
+                "timestamp": datetime.now(UTC).isoformat(),
+                "node": "validator",
+                "message": "Audit Passed: Calculation results validated successfully. No anomalies detected.",
+                "type": "success"
+            })
         
         state["status"] = "validated"
         

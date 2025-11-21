@@ -220,7 +220,8 @@ backend/
 | `/api/sessions/{session_id}` | GET | Get upload session details |
 | `/api/documents/{document_id}/extract` | POST | Extract structured data from document |
 | `/api/tax/calculate/{session_id}` | POST | Direct tax calculation (bypasses agent) |
-| `/api/sessions/{session_id}/process` | POST | Process session through LangGraph workflow |
+| `/api/sessions/{session_id}/process` | POST | Process session through LangGraph workflow (blocking) |
+| `/api/sessions/{session_id}/process/stream` | POST | Stream workflow progress in real-time (SSE) |
 | `/api/reports/{session_id}/1040` | POST | Generate filled Form 1040 PDF |
 | `/api/sessions/{session_id}` | DELETE | Delete session and all associated data |
 
@@ -273,6 +274,31 @@ While a simple script works for perfect data, real-world tax processing is messy
 5. **Agent** resumes → Aggregates data → Calculates Tax.
 6. **Result:** Success (Collaborative completion).
 
+### Agent Activity Feed (For Frontend)
+
+The agent now provides real-time execution logs through the `logs` field in the state. Each log entry contains:
+
+- **`timestamp`**: ISO 8601 timestamp of when the log was created
+- **`node`**: Which agent node generated the log (`aggregator`, `calculator`, `validator`)
+- **`message`**: Human-readable description of what the agent is doing
+- **`type`**: Log severity (`info`, `success`, `warning`, `error`)
+
+**Example Log Sequence:**
+```json
+[
+  {"timestamp": "2024-11-21T10:00:00Z", "node": "aggregator", "message": "Found 2 document(s) in session. Extracting financial data...", "type": "info"},
+  {"timestamp": "2024-11-21T10:00:02Z", "node": "aggregator", "message": "Extracted income: Wages $85,000.00, Interest $120.50, 1099-NEC $15,000.00", "type": "success"},
+  {"timestamp": "2024-11-21T10:00:03Z", "node": "calculator", "message": "Applying 2024 tax rules for filing status: single...", "type": "info"},
+  {"timestamp": "2024-11-21T10:00:05Z", "node": "calculator", "message": "Calculation complete. Gross Income: $100,120.50, Tax Liability: $15,230.00", "type": "success"},
+  {"timestamp": "2024-11-21T10:00:06Z", "node": "validator", "message": "AI Auditor reviewing calculation results...", "type": "info"},
+  {"timestamp": "2024-11-21T10:00:08Z", "node": "validator", "message": "Audit Passed: Calculation results validated successfully. No anomalies detected.", "type": "success"}
+]
+```
+
+**API Endpoints:**
+- **Non-Streaming** (`POST /sessions/{session_id}/process`): Returns the complete state with all logs after the workflow finishes.
+- **Streaming** (`POST /sessions/{session_id}/process/stream`): Uses Server-Sent Events (SSE) to stream each node's state update in real-time as the workflow progresses.
+
 **State Definition** (`TaxState`):
 ```python
 {
@@ -286,7 +312,17 @@ While a simple script works for perfect data, real-world tax processing is messy
     "validation_result": Optional[str],
     "missing_fields": List[str],
     "warnings": List[str],
-    "status": str
+    "status": str,
+    "current_step": str,
+    "logs": List[AgentLog]
+}
+
+# AgentLog structure:
+{
+    "timestamp": str,
+    "node": str,
+    "message": str,
+    "type": str  # "info" | "success" | "warning" | "error"
 }
 ```
 

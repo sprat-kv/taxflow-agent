@@ -1,5 +1,11 @@
 from typing import TypedDict, Optional, List, Dict, Any
 
+class AgentLog(TypedDict):
+    timestamp: str
+    node: str
+    message: str
+    type: str
+
 class TaxState(TypedDict):
     session_id: str
     filing_status: Optional[str]
@@ -13,4 +19,6 @@ class TaxState(TypedDict):
     missing_fields: List[str]
     warnings: List[str]
     status: str
+    current_step: str
+    logs: List[AgentLog]
 
