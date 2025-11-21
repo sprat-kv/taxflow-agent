@@ -1,21 +1,8 @@
-"""
-Tax data aggregation service.
-Aggregates financial data from extracted tax documents.
-"""
 from sqlalchemy.orm import Session
 from app.models.models import ExtractionResult
 from app.schemas.schemas import TaxInput, W2Data, NEC1099Data, INT1099Data
 
 def aggregate_w2_data(extraction_results: list[ExtractionResult]) -> tuple[float, float]:
-    """
-    Aggregate W-2 data from extraction results.
-    
-    Args:
-        extraction_results: List of extraction results with W-2 data
-        
-    Returns:
-        Tuple of (total_wages, total_withholding)
-    """
     total_wages = 0.0
     total_withholding = 0.0
     
@@ -30,22 +17,12 @@ def aggregate_w2_data(extraction_results: list[ExtractionResult]) -> tuple[float
                 if w2_data.federal_income_tax_withheld:
                     total_withholding += w2_data.federal_income_tax_withheld
                     
-            except Exception as e:
-                print(f"Error processing W-2 data: {e}")
+            except Exception:
                 continue
     
     return total_wages, total_withholding
 
 def aggregate_1099nec_data(extraction_results: list[ExtractionResult]) -> tuple[float, float]:
-    """
-    Aggregate 1099-NEC data from extraction results.
-    
-    Args:
-        extraction_results: List of extraction results with 1099-NEC data
-        
-    Returns:
-        Tuple of (total_nec_income, total_withholding)
-    """
     total_nec_income = 0.0
     total_withholding = 0.0
     
@@ -60,22 +37,12 @@ def aggregate_1099nec_data(extraction_results: list[ExtractionResult]) -> tuple[
                 if nec_data.federal_income_tax_withheld:
                     total_withholding += nec_data.federal_income_tax_withheld
                     
-            except Exception as e:
-                print(f"Error processing 1099-NEC data: {e}")
+            except Exception:
                 continue
     
     return total_nec_income, total_withholding
 
 def aggregate_1099int_data(extraction_results: list[ExtractionResult]) -> tuple[float, float]:
-    """
-    Aggregate 1099-INT data from extraction results.
-    
-    Args:
-        extraction_results: List of extraction results with 1099-INT data
-        
-    Returns:
-        Tuple of (total_interest, total_withholding)
-    """
     total_interest = 0.0
     total_withholding = 0.0
     
@@ -90,26 +57,12 @@ def aggregate_1099int_data(extraction_results: list[ExtractionResult]) -> tuple[
                 if int_data.federal_income_tax_withheld:
                     total_withholding += int_data.federal_income_tax_withheld
                     
-            except Exception as e:
-                print(f"Error processing 1099-INT data: {e}")
+            except Exception:
                 continue
     
     return total_interest, total_withholding
 
 def aggregate_tax_data(session_id: str, db: Session) -> TaxInput:
-    """
-    Aggregate all tax data for a session from extraction results.
-    
-    Args:
-        session_id: Upload session ID
-        db: Database session
-        
-    Returns:
-        TaxInput containing aggregated financial data
-        
-    Raises:
-        ValueError: If session not found or no extraction results
-    """
     from app.models.models import UploadSession, Document
     
     db_session = db.query(UploadSession).filter(UploadSession.id == session_id).first()

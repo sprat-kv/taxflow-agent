@@ -1,6 +1,3 @@
-"""
-LangGraph workflow for tax processing.
-"""
 from langgraph.graph import StateGraph, END
 from sqlalchemy.orm import Session
 from typing import Literal
@@ -8,15 +5,6 @@ from app.agent.state import TaxState
 from app.agent.nodes import aggregator_node, calculator_node, validator_node
 
 def should_continue(state: TaxState) -> Literal["calculate", "end"]:
-    """
-    Determine if workflow should continue or wait for user input.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        Next node name or "end"
-    """
     if state["status"] == "waiting_for_user":
         return "end"
     elif state["status"] == "error":
@@ -25,15 +13,6 @@ def should_continue(state: TaxState) -> Literal["calculate", "end"]:
         return "calculate"
 
 def create_tax_graph(db: Session) -> StateGraph:
-    """
-    Create the tax processing state graph with conditional routing.
-    
-    Args:
-        db: Database session to pass to nodes
-        
-    Returns:
-        Compiled StateGraph ready for execution
-    """
     workflow = StateGraph(TaxState)
     
     workflow.add_node("aggregate", lambda state: aggregator_node(state, db))
@@ -64,20 +43,6 @@ def run_tax_workflow(
     user_inputs: dict = None,
     db: Session = None
 ) -> TaxState:
-    """
-    Execute the tax processing workflow with state persistence.
-    
-    Args:
-        session_id: Upload session ID
-        filing_status: Filing status (optional, can be provided later)
-        tax_year: Tax year (optional, extracted from documents or provided by user)
-        personal_info: Personal information (name, ssn, address, etc.)
-        user_inputs: User-provided data to override/supplement extracted data
-        db: Database session
-        
-    Returns:
-        Final state after workflow completion
-    """
     from app.services.workflow_state_service import WorkflowStateService
     
     existing_state = WorkflowStateService.get_state(db, session_id)
@@ -107,7 +72,9 @@ def run_tax_workflow(
             "validation_result": None,
             "missing_fields": [],
             "warnings": [],
-            "status": "initialized"
+            "status": "initialized",
+            "current_step": "initialized",
+            "logs": []
         }
     
     graph = create_tax_graph(db)

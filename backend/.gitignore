@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 storage/*
+tax_app.db
