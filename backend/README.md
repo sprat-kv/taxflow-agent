@@ -63,12 +63,58 @@ AI-powered tax return preparation backend built with FastAPI, LangGraph, and Azu
 
 ### Data Flow
 
-1. **Upload**: Client uploads tax documents (W-2, 1099-NEC, 1099-INT) → stored in `storage/uploads/`
-2. **Extract**: Azure Document Intelligence extracts structured data → saved to `ExtractionResult`
-3. **Aggregate**: Service layer aggregates financial data from all documents
-4. **Process**: LangGraph agent orchestrates workflow (check missing info → calculate → validate)
-5. **Calculate**: Tax rules engine computes tax liability using 2024 IRS brackets
-6. **Generate**: Form 1040 PDF filled with calculated values → saved to `storage/reports/`
+1. **Upload**: Client uploads tax documents (W-2, 1099-NEC, 1099-INT) → stored in `storage/uploads/`.
+2. **Extract**: Azure Document Intelligence extracts structured data → saved to `ExtractionResult`.
+3. **Aggregate**: Service layer aggregates financial data from all documents.
+4. **Process**: LangGraph agent orchestrates workflow (check missing info → calculate → validate).
+5. **Calculate**: Tax rules engine computes tax liability using 2024 IRS brackets.
+6. **Generate**: Form 1040 PDF filled with calculated values → saved to `storage/reports/`.
+
+### End-to-End Flow: Upload → Parse → Calculate → Generate
+
+1. **Upload**
+   - Client calls `POST /api/sessions` with one or more PDFs (W-2, 1099-INT, 1099-NEC).
+   - `SessionService` creates an `UploadSession`, saves files under `storage/uploads/{session_id}/`, and creates `Document` rows.
+
+2. **Parse (Extract + Normalize)**
+   - Client (or backend) calls `POST /api/documents/{document_id}/extract` for each uploaded document.
+   - `DocumentService` loads the PDF file and passes bytes to `DocumentIntelligenceService`, which calls Azure Document Intelligence `prebuilt-tax.us`.
+   - The raw Azure result is normalized in `extraction.py`:
+     - Document type is normalized (e.g., `tax.us.1099INT.2022` → `tax.us.1099INT`).
+     - If Azure returns `other`, the type is inferred from the presence of key fields (W-2 vs 1099-INT vs 1099-NEC).
+     - Fields are mapped into typed models: `W2Data`, `NEC1099Data`, `INT1099Data`.
+   - A corresponding `ExtractionResult` row is persisted with `document_type` and `structured_data` (JSON).
+
+3. **Calculate (Aggregate → Rules Engine)**
+   - Client calls either:
+     - `POST /api/tax/calculate/{session_id}` for a direct calculation, or
+     - `POST /api/sessions/{session_id}/process` to run the full LangGraph agent (recommended).
+   - `TaxAggregator` (`tax_aggregator.py`) reads all `ExtractionResult` rows for the session and:
+     - Sums wages and withholding from W‑2s.
+     - Sums nonemployee compensation and withholding from 1099‑NECs.
+     - Sums interest income and withholding from 1099‑INTs.
+   - `TaxService` (`tax_service.py`) converts the aggregated numbers into a `TaxInput` and calls `tax_rules.py`:
+     - `get_standard_deduction` selects the 2024 standard deduction based on filing status.
+     - `calculate_taxable_income` computes taxable income from gross income minus deduction (minimum 0).
+     - `calculate_tax_liability` applies the 2024 progressive tax brackets.
+     - `calculate_refund_or_owed` compares liability vs. total withholding and returns both an amount and a `"refund" | "owed" | "even"` status.
+
+4. **Generate Form (1040 PDF)**
+   - After a successful calculation, client calls `POST /api/reports/{session_id}/1040`.
+   - `Form1040Service` (`form_1040_service.py`):
+     - Loads the persisted LangGraph `WorkflowState` for the session, which contains:
+       - `personal_info` (name, SSN, address, occupation, digital_assets answer).
+       - `aggregated_data` (wages, interest, NEC income, withholding).
+       - `calculation_result` (gross income, deductions, tax, refund/owed).
+     - Maps these into the official 2024 Form 1040 fields using `1040_field_mapping_template.json`.
+     - Fills only text fields (checkboxes are intentionally skipped for now).
+     - Writes a filled PDF to `storage/reports/{session_id}/Form_1040.pdf` and returns it as a download.
+
+5. **Validation Against Filing Instructions**
+   - The 1040 flow is aligned with `1040_FILING_INSTRUCTIONS.md`:
+     - **Universally mandatory** values (filer name, SSN, home address, filing status, digital assets answer, occupation) are enforced by the LangGraph `aggregator_node`. If any are missing, the workflow returns `waiting_for_user` with `missing_fields`.
+     - **Conditionally mandatory** lines (e.g., Line 1a, 2b, 8, 9, 25a, 34, 37) are populated based on the extracted and aggregated data. The tax math ensures that derived values such as Line 9 (Total Income), Line 11 (AGI), Line 15 (Taxable Income), Line 24 (Total Tax), and refund/owed lines are internally consistent.
+     - Only the 2024 tax year is supported. If documents or user input reference a different year, the agent returns a warning and does not proceed with calculation.
 
 ## Tech Stack
 
@@ -176,6 +222,7 @@ backend/
 | `/api/tax/calculate/{session_id}` | POST | Direct tax calculation (bypasses agent) |
 | `/api/sessions/{session_id}/process` | POST | Process session through LangGraph workflow |
 | `/api/reports/{session_id}/1040` | POST | Generate filled Form 1040 PDF |
+| `/api/sessions/{session_id}` | DELETE | Delete session and all associated data |
 
 ### Agent Workflow (`app/agent/`)
 
@@ -214,30 +261,59 @@ backend/
 }
 ```
 
-### Document Processing (`app/services/`)
+### Document Processing & Parsing (`app/services/`)
 
-- **DocumentIntelligenceService**: Wraps Azure Document Intelligence API
-  - Uses `prebuilt-tax.us` model for W-2, 1099-NEC, 1099-INT extraction
-- **DocumentService**: Orchestrates document upload, storage, and extraction
-- **ExtractionService**: Parses Azure extraction results into structured schemas
+- **`document_intelligence.py`**
+  - `DocumentIntelligenceService` is a thin wrapper around Azure's `DocumentIntelligenceClient`.
+  - Uses the `prebuilt-tax.us` model, which:
+    - Classifies the document type (W‑2, 1099‑NEC, 1099‑INT, or `other`).
+    - Returns a structured graph of fields and values for each recognized form.
+- **`extraction.py`**
+  - Centralizes the mapping logic from Azure's generic field dictionary into our strongly-typed Pydantic models:
+    - `map_w2_fields` → `W2Data`
+    - `map_1099nec_fields` → `NEC1099Data`
+    - `map_1099int_fields` → `INT1099Data`
+  - Normalizes document types and handles edge cases (like `"other"` classifications) by inspecting the presence of key fields (e.g., W‑2 wage boxes vs. 1099 boxes).
+  - Returns a normalized `document_type` string and a typed `W2Data`/`NEC1099Data`/`INT1099Data` instance for storage.
+- **`document_service.py`**
+  - Fetches the `Document` row, validates that the PDF exists on disk, calls `process_document`, and then persists the resulting `ExtractionResult` with `structured_data` as JSON.
 
-### Tax Calculations (`app/services/tax_rules.py`)
+### Tax Logic Modules (`app/services/tax_*.py`)
 
-**2024 US Federal Tax Rules**:
-- Standard Deductions:
-  - Single: $14,600
-  - Married Filing Jointly: $29,200
-  - Head of Household: $21,900
-- Progressive Tax Brackets (10%, 12%, 22%, 24%, 32%, 35%, 37%)
-- Supports all three filing statuses
+- **`tax_aggregator.py`**
+  - Implements *pure aggregation* over `ExtractionResult` rows:
+    - `aggregate_w2_data` → total W‑2 wages and withholding.
+    - `aggregate_1099nec_data` → total 1099‑NEC income and withholding.
+    - `aggregate_1099int_data` → total 1099‑INT interest and withholding.
+  - `aggregate_tax_data` combines these into a single `TaxInput` model, which becomes the source of truth for the rules engine.
+- **`tax_rules.py`**
+  - Encodes all **deterministic** 2024 US federal tax rules:
+    - `STANDARD_DEDUCTIONS` per filing status, matching 1040 instructions.
+    - `TAX_BRACKETS` per filing status, expressed as `(rate, upper_limit)` tuples and applied with `Decimal` precision.
+    - `get_standard_deduction`, `calculate_taxable_income`, `calculate_tax_liability`, `calculate_refund_or_owed`.
+  - Designed to be:
+    - Pure and side-effect free.
+    - Easy to unit-test independently from the rest of the system.
+- **`tax_service.py`**
+  - Orchestrates aggregation and rules:
+    - Calls `aggregate_tax_data` to produce a `TaxInput`.
+    - Calls the functions in `tax_rules.py` and returns a `TaxCalculationResult` Pydantic model ready for serialization and persistence.
 
-**Calculation Flow**:
-```
-Gross Income = Wages + Interest + 1099-NEC Income
-Taxable Income = Gross Income - Standard Deduction
-Tax Liability = Progressive bracket calculation
-Refund/Owed = Tax Liability - Total Withholding
-```
+### Form 1040 Generation (`app/services/form_1040_service.py`)
+
+- Consumes:
+  - The persisted `WorkflowState` (which contains personal info, aggregated data, and calculation result).
+  - The official `f1040.pdf` template under `storage/forms/`.
+  - The mapping defined in `1040_field_mapping_template.json`.
+- Uses `pypdf` to:
+  - Clone the AcroForm structure from the template.
+  - Fill text fields for:
+    - Personal identification (name, SSN, address).
+    - Income (Lines 1a, 1z, 2b, 8, 9).
+    - Deductions and taxable income (Lines 11–15).
+    - Tax, payments, and refund/owed (Lines 16, 24, 25a, 33, 34, 37).
+    - Occupation and contact details on Page 2.
+- Currently, checkbox fields (filing status, digital assets, etc.) are intentionally **not** filled to keep PDF logic simple and robust.
 
 ### Models (`app/models/models.py`)
 
@@ -293,16 +369,33 @@ uv run python -c "from app.main import app; from app.db.session import Base, eng
 ```
 
 5. **Run development server**:
+
+**Local access only (default):**
 ```bash
 uv run uvicorn app.main:app --reload
 ```
 
-Server runs on `http://localhost:8000`
+**Access from local network:**
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Find your local IP address:**
+- **Windows**: Run `ipconfig` and look for "IPv4 Address" under your active network adapter
+- **Mac/Linux**: Run `ifconfig` or `ip addr` and look for your network interface IP
+
+**Access from other devices:**
+- Replace `localhost` with your machine's IP address (e.g., `http://192.168.1.100:8000`)
+- Make sure your firewall allows incoming connections on port 8000
+
+Server runs on:
+- Local: `http://localhost:8000`
+- Network: `http://<your-ip-address>:8000`
 
 ### API Documentation
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8000/docs` or `http://<your-ip>:8000/docs`
+- ReDoc: `http://localhost:8000/redoc` or `http://<your-ip>:8000/redoc`
 
 ## Database Schema
 
@@ -479,6 +572,33 @@ Required environment variables (see `.env` example above):
 7. **Caching**: Consider Redis for workflow state caching
 8. **Background Jobs**: Use Celery or similar for long-running tasks
 
+### Security Features
+
+**Current Implementation:**
+
+1. **File Validation:**
+   - Magic byte verification (`%PDF` header check) to ensure uploaded files are genuine PDFs
+   - Content-type validation to reject non-PDF files
+   - File size limit of 10MB per upload to prevent DoS attacks
+
+2. **Data Cleanup:**
+   - `DELETE /api/sessions/{session_id}` endpoint to wipe all session data
+   - Removes uploaded files, generated reports, and database records
+   - Enables "temporary processing" workflow where users can delete sensitive data after downloading Form 1040
+
+3. **Input Validation:**
+   - Pydantic schema validation for all API inputs
+   - Filename sanitization (UUID-based naming) to prevent directory traversal attacks
+
+**Future Improvements (Production Roadmap):**
+
+- **Encryption at Rest:** Column-level encryption for SSN, names, and addresses in the database
+- **Encryption in Transit:** HTTPS/TLS enforcement for all API communication
+- **Authentication & Authorization:** OAuth2/JWT to restrict session access to authenticated users only
+- **Audit Logging:** Immutable logs tracking all access to sensitive tax data
+- **Ephemeral Storage:** Memory-only processing with automatic file deletion after 24 hours
+- **E-Filing Integration:** IRS MeF (Modernized e-File) compliance for secure electronic filing
+
 ### Known Limitations
 
 - Only supports 2024 tax year
@@ -486,6 +606,7 @@ Required environment variables (see `.env` example above):
 - Limited to W-2, 1099-NEC, and 1099-INT income sources
 - No support for tax credits beyond basic calculations
 - Form 1040 generation uses field mapping that may need updates for form changes
+- Sensitive data stored in plain text (encryption planned for production)
 
 ### Contributing
 

@@ -20,12 +20,24 @@ from app.models.models import Report
 
 router = APIRouter()
 
+MAX_FILE_SIZE = 10 * 1024 * 1024
+
 @router.post("/sessions", response_model=UploadResponse)
 async def create_upload_session(
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ):
-    """Create a new upload session and upload PDF files."""
+    for file in files:
+        file.file.seek(0, 2)
+        file_size = file.file.tell()
+        file.file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File {file.filename} exceeds maximum size of 10MB"
+            )
+    
     try:
         return SessionService.create_session_with_files(db, files)
     except Exception as e:
@@ -33,7 +45,6 @@ async def create_upload_session(
 
 @router.get("/sessions/{session_id}", response_model=UploadResponse)
 async def get_session(session_id: str, db: Session = Depends(get_db)):
-    """Get upload session by ID."""
     try:
         return SessionService.get_session(db, session_id)
     except ValueError as e:
@@ -43,19 +54,6 @@ async def get_session(session_id: str, db: Session = Depends(get_db)):
 
 @router.post("/documents/{document_id}/extract", response_model=ExtractionResultRead)
 async def extract_document(document_id: str, db: Session = Depends(get_db)):
-    """
-    Extract structured data from a tax document using Azure Document Intelligence.
-    
-    Args:
-        document_id: UUID of the uploaded document
-        db: Database session
-        
-    Returns:
-        ExtractionResultRead containing extracted tax data
-        
-    Raises:
-        HTTPException: If document not found or extraction fails
-    """
     try:
         return DocumentService.extract_document_data(db, document_id)
     except ValueError as e:
@@ -69,20 +67,6 @@ async def calculate_tax(
     filing_status: FilingStatus,
     db: Session = Depends(get_db)
 ):
-    """
-    Calculate tax for a session (direct calculation without agent).
-    
-    Args:
-        session_id: Upload session ID
-        filing_status: Filing status (single, married_filing_jointly, head_of_household)
-        db: Database session
-        
-    Returns:
-        TaxCalculationResult with calculated tax data
-        
-    Raises:
-        HTTPException: If session not found or calculation fails
-    """
     try:
         return TaxService.calculate_tax(session_id, filing_status, db)
     except ValueError as e:
@@ -96,33 +80,17 @@ async def process_session(
     request: ProcessSessionRequest = Body(...),
     db: Session = Depends(get_db)
 ) -> ProcessSessionResponse:
-    """
-    Process a session through the complete tax workflow using LangGraph agent.
-    
-    This endpoint supports a chat-like experience:
-    1. First call: Agent checks for missing info and returns what's needed
-    2. Subsequent calls: User provides missing data, agent continues processing
-    
-    Workflow: Aggregate → Check Missing → Calculate → Validate
-    
-    Args:
-        session_id: Upload session ID
-        request: ProcessSessionRequest with optional filing_status and user_inputs
-        db: Database session
-        
-    Returns:
-        ProcessSessionResponse with status and results or missing fields
-        
-    Raises:
-        HTTPException: If processing fails
-    """
     try:
+        # Convert Pydantic models to dicts for the workflow
+        personal_info_dict = request.personal_info.dict(exclude_none=True) if request.personal_info else None
+        user_inputs_dict = request.user_inputs.dict(exclude_none=True) if request.user_inputs else None
+        
         final_state = run_tax_workflow(
             session_id=session_id,
             filing_status=request.filing_status,
             tax_year=request.tax_year,
-            personal_info=request.personal_info,
-            user_inputs=request.user_inputs,
+            personal_info=personal_info_dict,
+            user_inputs=user_inputs_dict,
             db=db
         )
         
@@ -159,24 +127,9 @@ async def generate_form_1040(
     session_id: str,
     db: Session = Depends(get_db)
 ):
-    """
-    Generate Form 1040 PDF for a completed session.
-    
-    Args:
-        session_id: Upload session ID
-        db: Database session
-        
-    Returns:
-        FileResponse with the filled Form 1040 PDF
-        
-    Raises:
-        HTTPException: If session not found or PDF generation fails
-    """
     try:
-        # Generate the PDF
         pdf_path = Form1040Service.generate_1040(session_id, db)
         
-        # Save report record to database
         report = Report(
             session_id=session_id,
             report_type="form_1040",
@@ -185,7 +138,6 @@ async def generate_form_1040(
         db.add(report)
         db.commit()
         
-        # Return PDF as downloadable file
         return FileResponse(
             path=str(pdf_path),
             media_type="application/pdf",
@@ -196,4 +148,12 @@ async def generate_form_1040(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(session_id: str, db: Session = Depends(get_db)):
+    try:
+        SessionService.delete_session(db, session_id)
+        return {"message": "Session data deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
 

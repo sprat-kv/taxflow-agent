@@ -4,25 +4,12 @@ from app.services.document_intelligence import get_document_intelligence_service
 from app.schemas.schemas import W2Data, NEC1099Data, INT1099Data
 
 def _get_field_value(fields: dict, field_name: str, value_attr: str = "content") -> Optional[Any]:
-    """
-    Extract field value from Azure Document Intelligence response.
-    
-    Args:
-        fields: Dictionary of document fields
-        field_name: Name of the field to extract
-        value_attr: Attribute type to extract (value_number, value_string, value_object, value_array, content)
-        
-    Returns:
-        Extracted value or None if not found
-    """
     if field_name not in fields:
         return None
-    
     field = fields[field_name]
     return getattr(field, value_attr, None)
 
 def map_w2_fields(fields: dict) -> W2Data:
-    """Map Azure W-2 response fields to W2Data schema."""
     employee = _get_field_value(fields, "Employee", "value_object")
     employer = _get_field_value(fields, "Employer", "value_object")
     
@@ -41,7 +28,6 @@ def map_w2_fields(fields: dict) -> W2Data:
     )
 
 def map_1099nec_fields(fields: dict) -> NEC1099Data:
-    """Map Azure 1099-NEC response fields to NEC1099Data schema."""
     payer = _get_field_value(fields, "Payer", "value_object")
     recipient = _get_field_value(fields, "Recipient", "value_object")
     
@@ -56,7 +42,6 @@ def map_1099nec_fields(fields: dict) -> NEC1099Data:
     )
 
 def map_1099int_fields(fields: dict) -> INT1099Data:
-    """Map Azure 1099-INT response fields to INT1099Data schema."""
     payer = _get_field_value(fields, "Payer", "value_object")
     recipient = _get_field_value(fields, "Recipient", "value_object")
     
@@ -80,7 +65,6 @@ def map_1099int_fields(fields: dict) -> INT1099Data:
     )
 
 def _normalize_document_type(doc_type_raw: str) -> str:
-    """Normalize Azure document type by removing year suffix."""
     if doc_type_raw == "other":
         return "other"
     
@@ -91,7 +75,6 @@ def _normalize_document_type(doc_type_raw: str) -> str:
     return doc_type_raw
 
 def _infer_document_type_from_fields(fields: dict) -> str:
-    """Infer document type when Azure returns 'other'."""
     if "WagesTipsAndOtherCompensation" in fields or "Employee" in fields:
         return "tax.us.w2"
     elif "Box1" in fields:
@@ -102,18 +85,6 @@ def _infer_document_type_from_fields(fields: dict) -> str:
     raise ValueError("Cannot determine document type from 'other' classification")
 
 def process_document(pdf_path: str | Path) -> Tuple[str, Union[W2Data, NEC1099Data, INT1099Data], List[str]]:
-    """
-    Process a tax document PDF through Azure Document Intelligence.
-    
-    Args:
-        pdf_path: Path to PDF file
-        
-    Returns:
-        Tuple of (document_type, extracted_data, warnings)
-        
-    Raises:
-        ValueError: If document cannot be processed or type is unsupported
-    """
     warnings = []
     
     with open(pdf_path, "rb") as f:

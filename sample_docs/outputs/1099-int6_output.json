@@ -1,0 +1,5 @@
+{
+  "file": "1099-int6.pdf",
+  "error": "400 Client Error: Bad Request for url: http://localhost:8000/api/documents/16cca98f-9448-4ec4-83a7-a351f68dc24b/extract - {\"detail\":\"Extraction failed: Error mapping fields for tax.us.1099DIV.2022: Unsupported document type: tax.us.1099DIV.2022\"}",
+  "error_type": "api_error"
+}

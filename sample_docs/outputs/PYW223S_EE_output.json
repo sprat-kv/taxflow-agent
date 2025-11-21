@@ -1,0 +1,25 @@
+{
+  "file": "PYW223S_EE.pdf",
+  "session_id": "eb43f080-17d0-4346-a1d2-55c8cc033ef3",
+  "document_id": "7a9c95ee-5e80-46b2-bfe7-c71ca98e1e9d",
+  "extraction": {
+    "id": "b3fcd73d-e8bf-42bc-b9b0-a95514138fa6",
+    "document_id": "7a9c95ee-5e80-46b2-bfe7-c71ca98e1e9d",
+    "document_type": "tax.us.w2",
+    "structured_data": {
+      "tax_year": "2023",
+      "employee_ssn": "059-77-8530",
+      "employee_name": "D KERTHI VENKATA",
+      "employer_ein": "84-6000555",
+      "employer_name": "UNIVERSITY OF COLORADO",
+      "wages_tips_other_compensation": 2128.0,
+      "federal_income_tax_withheld": 17.86,
+      "social_security_wages": null,
+      "social_security_tax_withheld": null,
+      "medicare_wages_and_tips": null,
+      "medicare_tax_withheld": null
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:26:07.580705"
+  }
+}

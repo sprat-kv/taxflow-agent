@@ -1,0 +1,25 @@
+{
+  "file": "1099-int4.pdf",
+  "session_id": "98b29ac7-67de-4984-af7d-96d4b3a6c662",
+  "document_id": "1e23aa37-14d4-4fac-9c48-3b9415938771",
+  "extraction": {
+    "id": "05214d1a-feb5-49d2-9766-8cb9421f8feb",
+    "document_id": "1e23aa37-14d4-4fac-9c48-3b9415938771",
+    "document_type": "tax.us.1099INT",
+    "structured_data": {
+      "tax_year": "2024",
+      "payer_tin": "10-9920202",
+      "payer_name": "MICHAEL",
+      "recipient_tin": "101-42-0204",
+      "recipient_name": "WEST LIFE INSURANCE",
+      "interest_income": 1200.0,
+      "early_withdrawal_penalty": 3000.0,
+      "interest_on_us_savings_bonds": 6500.0,
+      "federal_income_tax_withheld": 1000.0,
+      "investment_expenses": 1780.0,
+      "foreign_tax_paid": 1854.0
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T20:47:08.077633"
+  }
+}
