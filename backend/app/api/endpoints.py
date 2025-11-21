@@ -116,6 +116,10 @@ async def process_session(
     Raises:
         HTTPException: If processing fails
     """
+    print(f"DEBUG: Received process request for session {session_id}")
+    print(f"DEBUG: Request payload: {request.dict()}")
+    print(f"DEBUG: personal_info: {request.personal_info}")
+
     try:
         final_state = run_tax_workflow(
             session_id=session_id,

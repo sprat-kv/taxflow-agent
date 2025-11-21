@@ -91,8 +91,14 @@ class SessionService:
         if not db_session:
             raise ValueError("Session not found")
         
+        # Fetch workflow state to get calculation result if available
+        from app.services.workflow_state_service import WorkflowStateService
+        state = WorkflowStateService.get_state(db, session_id)
+        calculation_result = state.get("calculation_result") if state else None
+        
         return UploadResponse(
             session_id=db_session.id,
-            documents=[DocumentRead.model_validate(doc) for doc in db_session.documents]
+            documents=[DocumentRead.model_validate(doc) for doc in db_session.documents],
+            calculation_result=calculation_result
         )
 
