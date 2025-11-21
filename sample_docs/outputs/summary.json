@@ -1,0 +1,413 @@
+{
+  "total_files": 18,
+  "successful": 17,
+  "failed": 1,
+  "results": [
+    {
+      "file": "1099-int1.pdf",
+      "session_id": "562d6604-1bd9-4dd9-bd05-18ed1911613f",
+      "document_id": "50bef973-218d-49f8-b1b1-311b0209b85b",
+      "extraction": {
+        "id": "f79472f1-322c-4d83-94fc-49d26ae9cd77",
+        "document_id": "50bef973-218d-49f8-b1b1-311b0209b85b",
+        "document_type": "tax.us.1099INT",
+        "structured_data": {
+          "tax_year": null,
+          "payer_tin": "94-1234567",
+          "payer_name": "First Bank",
+          "recipient_tin": "123-45-6789",
+          "recipient_name": "John Q Sample",
+          "interest_income": 485.0,
+          "early_withdrawal_penalty": null,
+          "interest_on_us_savings_bonds": null,
+          "federal_income_tax_withheld": 0.0,
+          "investment_expenses": null,
+          "foreign_tax_paid": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:23:30.282620"
+      }
+    },
+    {
+      "file": "1099-int2.pdf",
+      "session_id": "5a407d4c-f139-4b4b-a33a-a397faf69489",
+      "document_id": "39fa6a73-ef09-436c-8cc6-1687595e22ac",
+      "extraction": {
+        "id": "1eeb1c44-048e-44e8-9d93-ec18ba8dfa94",
+        "document_id": "39fa6a73-ef09-436c-8cc6-1687595e22ac",
+        "document_type": "tax.us.1099INT",
+        "structured_data": {
+          "tax_year": null,
+          "payer_tin": "94-12341234",
+          "payer_name": "Second Bank",
+          "recipient_tin": "321-45-6789",
+          "recipient_name": "Tom Q Sample",
+          "interest_income": 1285.0,
+          "early_withdrawal_penalty": 0.0,
+          "interest_on_us_savings_bonds": null,
+          "federal_income_tax_withheld": 100.0,
+          "investment_expenses": null,
+          "foreign_tax_paid": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:23:42.958543"
+      }
+    },
+    {
+      "file": "1099-int3.pdf",
+      "session_id": "a086df4d-0da5-43cf-bbf4-0acc52880efc",
+      "document_id": "98b9f827-4cca-4973-82d8-44f5e72bcfef",
+      "extraction": {
+        "id": "faa66c9f-0e57-4580-ab38-111030be2b16",
+        "document_id": "98b9f827-4cca-4973-82d8-44f5e72bcfef",
+        "document_type": "tax.us.1099INT",
+        "structured_data": {
+          "tax_year": null,
+          "payer_tin": "94-12344321",
+          "payer_name": "Second Bank",
+          "recipient_tin": "321-45-6798",
+          "recipient_name": "Daniel Q Sample",
+          "interest_income": 3000.0,
+          "early_withdrawal_penalty": 50.0,
+          "interest_on_us_savings_bonds": null,
+          "federal_income_tax_withheld": 0.0,
+          "investment_expenses": null,
+          "foreign_tax_paid": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:23:55.449647"
+      }
+    },
+    {
+      "file": "1099-int4.pdf",
+      "session_id": "4cc450b5-a114-44ca-868e-366344841667",
+      "document_id": "310bfd0e-fb30-465d-8f20-d4624905e105",
+      "extraction": {
+        "id": "320f63ce-2f00-4f8e-9668-28dbb271c651",
+        "document_id": "310bfd0e-fb30-465d-8f20-d4624905e105",
+        "document_type": "tax.us.1099INT",
+        "structured_data": {
+          "tax_year": "2024",
+          "payer_tin": "10-9920202",
+          "payer_name": "MICHAEL",
+          "recipient_tin": "101-42-0204",
+          "recipient_name": "WEST LIFE INSURANCE",
+          "interest_income": 1200.0,
+          "early_withdrawal_penalty": 3000.0,
+          "interest_on_us_savings_bonds": 6500.0,
+          "federal_income_tax_withheld": 1000.0,
+          "investment_expenses": 1780.0,
+          "foreign_tax_paid": 1854.0
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:24:08.468906"
+      }
+    },
+    {
+      "file": "1099-int5.pdf",
+      "session_id": "b42c9bdb-2f04-46ab-8bd6-28b4c85017df",
+      "document_id": "66ed76ad-b7ea-4040-9c70-47d281f8d906",
+      "extraction": {
+        "id": "4c5ac844-d8dc-4796-825d-a99833e8008d",
+        "document_id": "66ed76ad-b7ea-4040-9c70-47d281f8d906",
+        "document_type": "tax.us.1099INT",
+        "structured_data": {
+          "tax_year": "2013",
+          "payer_tin": "31-0536647",
+          "payer_name": "Cedarville University",
+          "recipient_tin": "123-45-6789",
+          "recipient_name": "Student, Jane",
+          "interest_income": 11.35,
+          "early_withdrawal_penalty": null,
+          "interest_on_us_savings_bonds": null,
+          "federal_income_tax_withheld": 0.0,
+          "investment_expenses": null,
+          "foreign_tax_paid": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:24:21.422122"
+      }
+    },
+    {
+      "file": "1099-int6.pdf",
+      "error": "400 Client Error: Bad Request for url: http://localhost:8000/api/documents/99509870-c27a-4927-9756-5ddf682c3c11/extract - {\"detail\":\"Error mapping fields for tax.us.1099DIV.2022: Unsupported document type: tax.us.1099DIV.2022\"}",
+      "error_type": "api_error"
+    },
+    {
+      "file": "1099_nec_1.pdf",
+      "session_id": "07975f6a-cc6a-47b8-a6f5-70f7915dc9d7",
+      "document_id": "6d41de8f-fb49-4bb0-8784-6eff123b166e",
+      "extraction": {
+        "id": "81e79a60-153c-4052-ae94-527f6dfc7a4f",
+        "document_id": "6d41de8f-fb49-4bb0-8784-6eff123b166e",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": null,
+          "payer_tin": "45-6789123",
+          "payer_name": "Acme Design Studio LLC",
+          "recipient_tin": "123-45-6789",
+          "recipient_name": "Kelly R. Contractor",
+          "nonemployee_compensation": 4800.0,
+          "federal_income_tax_withheld": 0.0
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:24:46.789851"
+      }
+    },
+    {
+      "file": "1099_nec_2.pdf",
+      "session_id": "aa98fc2b-1599-48b9-b3ab-36b4d377adb4",
+      "document_id": "f4323e7e-1ffc-4115-b1b4-8eaf3e5923a7",
+      "extraction": {
+        "id": "67622b3b-97de-4b6a-ad46-82f7b8d9328f",
+        "document_id": "f4323e7e-1ffc-4115-b1b4-8eaf3e5923a7",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": "2024",
+          "payer_tin": "45-6789123",
+          "payer_name": "Riverside Analytics Inc.",
+          "recipient_tin": "987-65-4321",
+          "recipient_name": "Kelly Tessa. Contractor",
+          "nonemployee_compensation": 18250.5,
+          "federal_income_tax_withheld": 1825.0
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:24:59.242804"
+      }
+    },
+    {
+      "file": "1099_nec_3.pdf",
+      "session_id": "5ef52628-7071-4380-ab20-b660cf870f72",
+      "document_id": "05261849-08c8-4ed0-b7fb-9b80918a53cb",
+      "extraction": {
+        "id": "3c9f2e67-44c0-48e0-b0cc-92d8cfdcf826",
+        "document_id": "05261849-08c8-4ed0-b7fb-9b80918a53cb",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": "2024",
+          "payer_tin": "45-67891321",
+          "payer_name": "CoastsideAnalytics Inc.",
+          "recipient_tin": "987-65-1234",
+          "recipient_name": "Rally Tessa. Contractor",
+          "nonemployee_compensation": 32000.0,
+          "federal_income_tax_withheld": 1825.0
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:25:11.792867"
+      }
+    },
+    {
+      "file": "1099_nec_4.pdf",
+      "session_id": "1d3e8592-d944-4d6f-8053-681d9754a86b",
+      "document_id": "04447d12-ec99-4ffe-8e4b-77d10108b16e",
+      "extraction": {
+        "id": "1327c2dd-b290-4500-9cfb-fde0ae717c4b",
+        "document_id": "04447d12-ec99-4ffe-8e4b-77d10108b16e",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": "2024",
+          "payer_tin": "10-9920202",
+          "payer_name": "MICHAEL M JORDAN",
+          "recipient_tin": "101-42-0202",
+          "recipient_name": "CANNON TOOLS CO",
+          "nonemployee_compensation": 1000.0,
+          "federal_income_tax_withheld": 100.0
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:25:24.654310"
+      }
+    },
+    {
+      "file": "1099_nec_5.pdf",
+      "session_id": "fb84f49b-3f86-471a-b4f4-59ebca214b9c",
+      "document_id": "4d2a1aca-14e2-4467-b6ca-2d7b4909092f",
+      "extraction": {
+        "id": "e02b02cd-2f94-46d0-bb4d-b45ea112471a",
+        "document_id": "4d2a1aca-14e2-4467-b6ca-2d7b4909092f",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": "2021",
+          "payer_tin": "12-3456789",
+          "payer_name": "Business Company",
+          "recipient_tin": "123-45-6789",
+          "recipient_name": "Peter Payer",
+          "nonemployee_compensation": 12345.0,
+          "federal_income_tax_withheld": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:25:37.767655"
+      }
+    },
+    {
+      "file": "1099_nec_6.pdf",
+      "session_id": "a13401a6-745a-4990-b9a6-565c209add42",
+      "document_id": "670d5305-7b32-4ca2-ae33-91f443a71054",
+      "extraction": {
+        "id": "fe335f85-b6f9-456e-9778-00ce4164b71b",
+        "document_id": "670d5305-7b32-4ca2-ae33-91f443a71054",
+        "document_type": "tax.us.1099NEC",
+        "structured_data": {
+          "tax_year": "2022",
+          "payer_tin": "11-0000000",
+          "payer_name": "company name, Inc",
+          "recipient_tin": "222-33-4444",
+          "recipient_name": "Recipient 1",
+          "nonemployee_compensation": 5000.0,
+          "federal_income_tax_withheld": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:25:50.502623"
+      }
+    },
+    {
+      "file": "PYW223S_EE.pdf",
+      "session_id": "eb43f080-17d0-4346-a1d2-55c8cc033ef3",
+      "document_id": "7a9c95ee-5e80-46b2-bfe7-c71ca98e1e9d",
+      "extraction": {
+        "id": "b3fcd73d-e8bf-42bc-b9b0-a95514138fa6",
+        "document_id": "7a9c95ee-5e80-46b2-bfe7-c71ca98e1e9d",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": "2023",
+          "employee_ssn": "059-77-8530",
+          "employee_name": "D KERTHI VENKATA",
+          "employer_ein": "84-6000555",
+          "employer_name": "UNIVERSITY OF COLORADO",
+          "wages_tips_other_compensation": 2128.0,
+          "federal_income_tax_withheld": 17.86,
+          "social_security_wages": null,
+          "social_security_tax_withheld": null,
+          "medicare_wages_and_tips": null,
+          "medicare_tax_withheld": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:26:07.580705"
+      }
+    },
+    {
+      "file": "PYW224S_EE.pdf",
+      "session_id": "64a224f9-1cbd-4c21-aed0-973133b0cb0d",
+      "document_id": "15bb7176-0720-4d0e-a1df-faa968377f57",
+      "extraction": {
+        "id": "d1ccdf1b-df73-425d-9364-aeac81e0459b",
+        "document_id": "15bb7176-0720-4d0e-a1df-faa968377f57",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": "2024",
+          "employee_ssn": "059-77-8530",
+          "employee_name": "D KERTHI VENKATA",
+          "employer_ein": "84-6000555",
+          "employer_name": "UNIVERSITY OF COLORADO",
+          "wages_tips_other_compensation": 24347.97,
+          "federal_income_tax_withheld": 1103.92,
+          "social_security_wages": null,
+          "social_security_tax_withheld": null,
+          "medicare_wages_and_tips": null,
+          "medicare_tax_withheld": null
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:26:20.731567"
+      }
+    },
+    {
+      "file": "W2_Multi_Sample_Data_input_ADP1_clean_15725.pdf",
+      "session_id": "b5ea6352-4bb8-42c7-84ff-caecfa94b175",
+      "document_id": "11b959e2-f721-4f0b-ae5a-0f2f4edd1a50",
+      "extraction": {
+        "id": "6c04e999-5a63-49e9-a727-ef522d0394e7",
+        "document_id": "11b959e2-f721-4f0b-ae5a-0f2f4edd1a50",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": "2018",
+          "employee_ssn": "664-02-8630",
+          "employee_name": "Alexis Sexton",
+          "employer_ein": "75-5356392",
+          "employer_name": "Smith, Morales and Gates LLC",
+          "wages_tips_other_compensation": 159840.83,
+          "federal_income_tax_withheld": 35212.96,
+          "social_security_wages": 151366.4,
+          "social_security_tax_withheld": 11579.53,
+          "medicare_wages_and_tips": 112823.22,
+          "medicare_tax_withheld": 3271.87
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:26:35.588205"
+      }
+    },
+    {
+      "file": "W2_Multi_Sample_Data_input_ADP2_clean_20769.pdf",
+      "session_id": "778baab9-a3b9-4ba0-bb4b-59f230900beb",
+      "document_id": "7e1cbe8f-e2c6-44bc-9b14-9eefa1ef8aa4",
+      "extraction": {
+        "id": "f2abdca5-71ae-453d-85bd-29ee5815c983",
+        "document_id": "7e1cbe8f-e2c6-44bc-9b14-9eefa1ef8aa4",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": null,
+          "employee_ssn": "0",
+          "employee_name": "Elizabeth Blair",
+          "employer_ein": "81-5146346",
+          "employer_name": "Lane LLC Inc",
+          "wages_tips_other_compensation": 56640.32,
+          "federal_income_tax_withheld": 9154.32,
+          "social_security_wages": 51344.59,
+          "social_security_tax_withheld": 3927.86,
+          "medicare_wages_and_tips": 51937.78,
+          "medicare_tax_withheld": 1506.2
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:26:52.156150"
+      }
+    },
+    {
+      "file": "W2_Multi_Sample_Data_input_IRS1_clean_5100.pdf",
+      "session_id": "138dfa19-78a2-44ca-adad-aaa526b4be68",
+      "document_id": "16a17b0f-42b3-47b0-a8cd-4a035778158d",
+      "extraction": {
+        "id": "b215bbbf-5f85-4a68-9536-348654728d5b",
+        "document_id": "16a17b0f-42b3-47b0-a8cd-4a035778158d",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": "2019",
+          "employee_ssn": "697-85-3013",
+          "employee_name": "Joseph Nichols",
+          "employer_ein": "68-5252268",
+          "employer_name": "Grimes-Smith Group",
+          "wages_tips_other_compensation": 156647.19,
+          "federal_income_tax_withheld": 20420.18,
+          "social_security_wages": 161580.72,
+          "social_security_tax_withheld": 12360.93,
+          "medicare_wages_and_tips": 131370.22,
+          "medicare_tax_withheld": 3809.74
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:27:04.830105"
+      }
+    },
+    {
+      "file": "W2_Multi_Sample_Data_input_IRS2_clean_10386.pdf",
+      "session_id": "378dc04e-da8e-4d3c-96eb-f8ee254a85ee",
+      "document_id": "ed788f00-7cb0-49a6-9856-e1863012661c",
+      "extraction": {
+        "id": "29526f73-07b1-4466-acdd-fa10c1ac4b0e",
+        "document_id": "ed788f00-7cb0-49a6-9856-e1863012661c",
+        "document_type": "tax.us.w2",
+        "structured_data": {
+          "tax_year": "2018",
+          "employee_ssn": "534-97-3460",
+          "employee_name": "Rebecca Peters",
+          "employer_ein": "20-5483796",
+          "employer_name": "Castillo Group PLC",
+          "wages_tips_other_compensation": 61367.28,
+          "federal_income_tax_withheld": 6381.6,
+          "social_security_wages": 69370.18,
+          "social_security_tax_withheld": 5306.82,
+          "medicare_wages_and_tips": 51423.35,
+          "medicare_tax_withheld": 1491.28
+        },
+        "warnings": null,
+        "created_at": "2025-11-19T19:27:17.447513"
+      }
+    }
+  ]
+}

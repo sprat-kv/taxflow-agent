@@ -1,0 +1,25 @@
+{
+  "file": "W2_Multi_Sample_Data_input_ADP1_clean_15725.pdf",
+  "session_id": "b5ea6352-4bb8-42c7-84ff-caecfa94b175",
+  "document_id": "11b959e2-f721-4f0b-ae5a-0f2f4edd1a50",
+  "extraction": {
+    "id": "6c04e999-5a63-49e9-a727-ef522d0394e7",
+    "document_id": "11b959e2-f721-4f0b-ae5a-0f2f4edd1a50",
+    "document_type": "tax.us.w2",
+    "structured_data": {
+      "tax_year": "2018",
+      "employee_ssn": "664-02-8630",
+      "employee_name": "Alexis Sexton",
+      "employer_ein": "75-5356392",
+      "employer_name": "Smith, Morales and Gates LLC",
+      "wages_tips_other_compensation": 159840.83,
+      "federal_income_tax_withheld": 35212.96,
+      "social_security_wages": 151366.4,
+      "social_security_tax_withheld": 11579.53,
+      "medicare_wages_and_tips": 112823.22,
+      "medicare_tax_withheld": 3271.87
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:26:35.588205"
+  }
+}
