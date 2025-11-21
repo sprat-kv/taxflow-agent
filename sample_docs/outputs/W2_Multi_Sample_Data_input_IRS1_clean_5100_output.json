@@ -1,0 +1,25 @@
+{
+  "file": "W2_Multi_Sample_Data_input_IRS1_clean_5100.pdf",
+  "session_id": "138dfa19-78a2-44ca-adad-aaa526b4be68",
+  "document_id": "16a17b0f-42b3-47b0-a8cd-4a035778158d",
+  "extraction": {
+    "id": "b215bbbf-5f85-4a68-9536-348654728d5b",
+    "document_id": "16a17b0f-42b3-47b0-a8cd-4a035778158d",
+    "document_type": "tax.us.w2",
+    "structured_data": {
+      "tax_year": "2019",
+      "employee_ssn": "697-85-3013",
+      "employee_name": "Joseph Nichols",
+      "employer_ein": "68-5252268",
+      "employer_name": "Grimes-Smith Group",
+      "wages_tips_other_compensation": 156647.19,
+      "federal_income_tax_withheld": 20420.18,
+      "social_security_wages": 161580.72,
+      "social_security_tax_withheld": 12360.93,
+      "medicare_wages_and_tips": 131370.22,
+      "medicare_tax_withheld": 3809.74
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:27:04.830105"
+  }
+}

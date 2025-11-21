@@ -77,14 +77,12 @@ class ExtractionResultRead(BaseModel):
         from_attributes = True
 
 class TaxInput(BaseModel):
-    """Aggregated tax input data from all documents."""
     total_wages: float = 0.0
     total_interest: float = 0.0
     total_nec_income: float = 0.0
     total_withholding: float = 0.0
     
 class TaxCalculationResult(BaseModel):
-    """Result of tax calculation."""
     gross_income: float
     standard_deduction: float
     taxable_income: float
@@ -93,15 +91,118 @@ class TaxCalculationResult(BaseModel):
     refund_or_owed: float
     status: str
 
+class PersonalInfo(BaseModel):
+    """
+    Personal information for tax processing.
+    
+    **Mandatory fields for aggregator function:**
+    - filer_name: Full name of the tax filer
+    - filer_ssn: Social Security Number
+    - home_address: Complete home address
+    - occupation: Occupation/employment
+    - digital_assets: Answer about digital assets (yes/no/other)
+    
+    **Optional fields:**
+    - phone: Phone number
+    """
+    filer_name: Optional[str] = None
+    filer_ssn: Optional[str] = None
+    home_address: Optional[str] = None
+    occupation: Optional[str] = None
+    digital_assets: Optional[str] = None
+    phone: Optional[str] = None
+
+class UserInputs(BaseModel):
+    """Optional user inputs to override extracted values"""
+    total_wages: Optional[float] = None
+    total_interest: Optional[float] = None
+    total_nec_income: Optional[float] = None
+    total_withholding: Optional[float] = None
+
 class ProcessSessionRequest(BaseModel):
-    """Request to process a session with optional user inputs."""
+    """
+    Request structure for processing a tax session.
+    
+    All fields are optional to support incremental updates, but for a complete initial request,
+    the following fields are mandatory for the aggregator function to proceed:
+    
+    **Mandatory Fields for Initial Request:**
+    - filing_status: Tax filing status - Valid values: "single", "married_filing_jointly", "head_of_household"
+    - tax_year: Tax year (currently only "2024" is supported)
+    - personal_info.filer_name: Full name of the tax filer
+    - personal_info.filer_ssn: Social Security Number of the filer (format: XXX-XX-XXXX)
+    - personal_info.home_address: Complete home address (street, city, state, ZIP)
+    - personal_info.occupation: Occupation/employment description
+    - personal_info.digital_assets: Answer regarding digital assets - Valid values: "yes", "no", or other descriptive text
+    
+    **Optional Fields:**
+    - personal_info.phone: Phone number (format: XXX-XXX-XXXX or (XXX) XXX-XXXX)
+    - user_inputs.total_wages: Override total wages from W2 forms (float)
+    - user_inputs.total_interest: Override total interest income from 1099-INT forms (float)
+    - user_inputs.total_nec_income: Override total non-employee compensation from 1099-NEC forms (float)
+    - user_inputs.total_withholding: Override total federal tax withheld (float)
+    
+    **Complete Example Request (All Fields):**
+    {
+        "filing_status": "single",
+        "tax_year": "2024",
+        "personal_info": {
+            "filer_name": "John Michael Doe",
+            "filer_ssn": "123-45-6789",
+            "home_address": "123 Main Street, Apt 4B, New York, NY 10001",
+            "occupation": "Software Engineer",
+            "digital_assets": "no",
+            "phone": "(555) 123-4567"
+        },
+        "user_inputs": {
+            "total_wages": 75000.50,
+            "total_interest": 125.75,
+            "total_nec_income": 5000.00,
+            "total_withholding": 8500.25
+        }
+    }
+    
+    **Minimal Initial Request (Only Mandatory Fields):**
+    {
+        "filing_status": "single",
+        "tax_year": "2024",
+        "personal_info": {
+            "filer_name": "Jane Smith",
+            "filer_ssn": "987-65-4321",
+            "home_address": "456 Oak Avenue, Los Angeles, CA 90001",
+            "occupation": "Teacher",
+            "digital_assets": "yes"
+        }
+    }
+    
+    **Example Incremental Update (to provide missing fields):**
+    {
+        "personal_info": {
+            "filer_ssn": "123-45-6789",
+            "home_address": "123 Main Street, New York, NY 10001"
+        }
+    }
+    
+    **Example with Different Filing Status:**
+    {
+        "filing_status": "married_filing_jointly",
+        "tax_year": "2024",
+        "personal_info": {
+            "filer_name": "Robert and Sarah Johnson",
+            "filer_ssn": "111-22-3333",
+            "home_address": "789 Elm Drive, Chicago, IL 60601",
+            "occupation": "Accountant",
+            "digital_assets": "no",
+            "phone": "312-555-7890"
+        }
+    }
+    """
     filing_status: Optional[str] = None
     tax_year: Optional[str] = None
-    personal_info: Optional[dict] = None
-    user_inputs: Optional[dict] = None
+    personal_info: Optional[PersonalInfo] = None
+    user_inputs: Optional[UserInputs] = None
 
 class ProcessSessionResponse(BaseModel):
-    """Response from session processing."""
     status: str
     message: Optional[str] = None
     missing_fields: Optional[List[str]] = None

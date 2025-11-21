@@ -1,0 +1,998 @@
+{
+  "_metadata": {
+    "form": "IRS Form 1040",
+    "tax_year": "2024",
+    "version": "2.0",
+    "instructions": "Fill in the 'description' for each field based on the labeled PDF. Use 'line_number' to reference Form 1040 line numbers."
+  },
+  
+  "_field_types": {
+    "text": "Text input field - displays text values",
+    "checkbox": "Checkbox field - use '/Yes' to check, '/Off' to uncheck"
+  },
+  
+  "_how_to_use": [
+    "1. Run: python scripts/generate_labeled_1040.py",
+    "2. Open: test_output/Form_1040_ALL_FIELDS_LABELED.pdf",
+    "3. Map fields using the visual references provided in this file."
+  ],
+  
+  "text_fields": {
+    "AccountNo[0]": {
+      "description": "Bank account number for direct deposit refund",
+      "line_number": "35d",
+      "section": "Refund - Direct Deposit",
+      "required": false
+    },
+    "RoutingNo[0]": {
+      "description": "Bank routing number for direct deposit refund",
+      "line_number": "35b",
+      "section": "Refund - Direct Deposit",
+      "required": false
+    },
+    "f1_01[0]": {
+      "description": "Starting month of tax year (e.g., '01')",
+      "line_number": null,
+      "section": "Tax Year",
+      "required": false
+    },
+    "f1_02[0]": {
+      "description": "End month of tax year (e.g., '12')",
+      "line_number": null,
+      "section": "Tax Year",
+      "required": false
+    },
+    "f1_03[0]": {
+      "description": "End year last 2 digits (e.g., '24')",
+      "line_number": null,
+      "section": "Tax Year",
+      "required": false
+    },
+    "f1_04[0]": {
+      "description": "First name and middle initial of taxpayer",
+      "line_number": null,
+      "section": "Personal Information",
+      "required": true
+    },
+    "f1_05[0]": {
+      "description": "Last name of taxpayer",
+      "line_number": null,
+      "section": "Personal Information",
+      "required": true
+    },
+    "f1_06[0]": {
+      "description": "Social Security Number (9 digits)",
+      "line_number": null,
+      "section": "Personal Information",
+      "required": true
+    },
+    "f1_07[0]": {
+      "description": "Spouse first name and middle initial",
+      "line_number": null,
+      "section": "Personal Information - Spouse",
+      "required": false
+    },
+    "f1_08[0]": {
+      "description": "Spouse last name",
+      "line_number": null,
+      "section": "Personal Information - Spouse",
+      "required": false
+    },
+    "f1_09[0]": {
+      "description": "Spouse Social Security Number",
+      "line_number": null,
+      "section": "Personal Information - Spouse",
+      "required": false
+    },
+    "f1_10[0]": {
+      "description": "Home address - street address",
+      "line_number": null,
+      "section": "Address",
+      "required": true
+    },
+    "f1_11[0]": {
+      "description": "Apartment or suite number",
+      "line_number": null,
+      "section": "Address",
+      "required": false
+    },
+    "f1_12[0]": {
+      "description": "City, town or post office",
+      "line_number": null,
+      "section": "Address",
+      "required": true
+    },
+    "f1_13[0]": {
+      "description": "State (2-letter code)",
+      "line_number": null,
+      "section": "Address",
+      "required": true
+    },
+    "f1_14[0]": {
+      "description": "ZIP code",
+      "line_number": null,
+      "section": "Address",
+      "required": true
+    },
+    "f1_15[0]": {
+      "description": "Foreign country name",
+      "line_number": null,
+      "section": "Address - Foreign",
+      "required": false
+    },
+    "f1_16[0]": {
+      "description": "Foreign province/state/county",
+      "line_number": null,
+      "section": "Address - Foreign",
+      "required": false
+    },
+    "f1_17[0]": {
+      "description": "Foreign postal code",
+      "line_number": null,
+      "section": "Address - Foreign",
+      "required": false
+    },
+    "f1_18[0]": {
+      "description": "Child's name for HOH/QSS if not dependent",
+      "line_number": null,
+      "section": "Filing Status",
+      "required": false
+    },
+    "f1_19[0]": {
+      "description": "Nonresident/dual-status spouse name",
+      "line_number": null,
+      "section": "Filing Status",
+      "required": false
+    },
+    "f1_20[0]": {
+      "description": "Dependent 1 - First Name",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_21[0]": {
+      "description": "Dependent 1 - Social Security Number",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_22[0]": {
+      "description": "Dependent 1 - Relationship to you",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_23[0]": {
+      "description": "Dependent 2 - First Name",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_24[0]": {
+      "description": "Dependent 2 - Social Security Number",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_25[0]": {
+      "description": "Dependent 2 - Relationship to you",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_26[0]": {
+      "description": "Dependent 3 - First Name",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_27[0]": {
+      "description": "Dependent 3 - Social Security Number",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_28[0]": {
+      "description": "Dependent 3 - Relationship to you",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_29[0]": {
+      "description": "Dependent 4 - First Name",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_30[0]": {
+      "description": "Dependent 4 - Social Security Number",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_31[0]": {
+      "description": "Dependent 4 - Relationship to you",
+      "line_number": null,
+      "section": "Dependents",
+      "required": false
+    },
+    "f1_32[0]": {
+      "description": "Wages, tips, other compensation (Form W-2)",
+      "line_number": "1a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_33[0]": {
+      "description": "Household employee wages not on W-2",
+      "line_number": "1b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_34[0]": {
+      "description": "Tip income not reported on line 1a",
+      "line_number": "1c",
+      "section": "Income",
+      "required": false
+    },
+    "f1_35[0]": {
+      "description": "Medicaid waiver payments not on W-2",
+      "line_number": "1d",
+      "section": "Income",
+      "required": false
+    },
+    "f1_36[0]": {
+      "description": "Taxable dependent care benefits (Form 2441)",
+      "line_number": "1e",
+      "section": "Income",
+      "required": false
+    },
+    "f1_37[0]": {
+      "description": "Employer-provided adoption benefits (Form 8839)",
+      "line_number": "1f",
+      "section": "Income",
+      "required": false
+    },
+    "f1_38[0]": {
+      "description": "Wages from Form 8919",
+      "line_number": "1g",
+      "section": "Income",
+      "required": false
+    },
+    "f1_39[0]": {
+      "description": "Other earned income",
+      "line_number": "1h",
+      "section": "Income",
+      "required": false
+    },
+    "f1_40[0]": {
+      "description": "Nontaxable combat pay election",
+      "line_number": "1i",
+      "section": "Income",
+      "required": false
+    },
+    "f1_41[0]": {
+      "description": "Total wages (Add lines 1a through 1h)",
+      "line_number": "1z",
+      "section": "Income",
+      "required": false
+    },
+    "f1_42[0]": {
+      "description": "Tax-exempt interest",
+      "line_number": "2a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_43[0]": {
+      "description": "Taxable interest",
+      "line_number": "2b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_44[0]": {
+      "description": "Qualified dividends",
+      "line_number": "3a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_45[0]": {
+      "description": "Ordinary dividends",
+      "line_number": "3b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_46[0]": {
+      "description": "IRA distributions - Total amount",
+      "line_number": "4a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_47[0]": {
+      "description": "IRA distributions - Taxable amount",
+      "line_number": "4b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_48[0]": {
+      "description": "Pensions and annuities - Total amount",
+      "line_number": "5a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_49[0]": {
+      "description": "Pensions and annuities - Taxable amount",
+      "line_number": "5b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_50[0]": {
+      "description": "Social Security benefits - Total amount",
+      "line_number": "6a",
+      "section": "Income",
+      "required": false
+    },
+    "f1_51[0]": {
+      "description": "Social Security benefits - Taxable amount",
+      "line_number": "6b",
+      "section": "Income",
+      "required": false
+    },
+    "f1_52[0]": {
+      "description": "Capital gain or (loss)",
+      "line_number": "7",
+      "section": "Income",
+      "required": false
+    },
+    "f1_53[0]": {
+      "description": "Additional income from Schedule 1",
+      "line_number": "8",
+      "section": "Income",
+      "required": false
+    },
+    "f1_54[0]": {
+      "description": "Total income",
+      "line_number": "9",
+      "section": "Income",
+      "required": true
+    },
+    "f1_55[0]": {
+      "description": "Adjustments to income from Schedule 1",
+      "line_number": "10",
+      "section": "Adjustments",
+      "required": false
+    },
+    "f1_56[0]": {
+      "description": "Adjusted Gross Income",
+      "line_number": "11",
+      "section": "Adjustments",
+      "required": true
+    },
+    "f1_57[0]": {
+      "description": "Standard deduction or itemized deductions",
+      "line_number": "12",
+      "section": "Deductions",
+      "required": true
+    },
+    "f1_58[0]": {
+      "description": "Qualified business income deduction",
+      "line_number": "13",
+      "section": "Deductions",
+      "required": false
+    },
+    "f1_59[0]": {
+      "description": "Total deductions (Add 12 and 13)",
+      "line_number": "14",
+      "section": "Deductions",
+      "required": true
+    },
+    "f1_60[0]": {
+      "description": "Taxable income (Subtract 14 from 11)",
+      "line_number": "15",
+      "section": "Deductions",
+      "required": true
+    },
+    "f2_01[0]": {
+      "description": "Text for checkbox 3 on Line 16",
+      "line_number": "16",
+      "section": "Page 2 - Tax",
+      "required": false
+    },
+    "f2_02[0]": {
+      "description": "Tax Amount",
+      "line_number": "16",
+      "section": "Page 2 - Tax",
+      "required": true
+    },
+    "f2_03[0]": {
+      "description": "Amount from Schedule 2, line 3",
+      "line_number": "17",
+      "section": "Page 2 - Tax",
+      "required": false
+    },
+    "f2_04[0]": {
+      "description": "Add lines 16 and 17",
+      "line_number": "18",
+      "section": "Page 2 - Tax",
+      "required": false
+    },
+    "f2_05[0]": {
+      "description": "Child tax credit / Credit for other dependents",
+      "line_number": "19",
+      "section": "Page 2 - Credits",
+      "required": false
+    },
+    "f2_06[0]": {
+      "description": "Amount from Schedule 3, line 8",
+      "line_number": "20",
+      "section": "Page 2 - Credits",
+      "required": false
+    },
+    "f2_07[0]": {
+      "description": "Add lines 19 and 20",
+      "line_number": "21",
+      "section": "Page 2 - Credits",
+      "required": false
+    },
+    "f2_08[0]": {
+      "description": "Subtract line 21 from 18",
+      "line_number": "22",
+      "section": "Page 2 - Credits",
+      "required": false
+    },
+    "f2_09[0]": {
+      "description": "Other taxes (Schedule 2, line 21)",
+      "line_number": "23",
+      "section": "Page 2 - Tax",
+      "required": false
+    },
+    "f2_10[0]": {
+      "description": "Total Tax (Add lines 22 and 23)",
+      "line_number": "24",
+      "section": "Page 2 - Total Tax",
+      "required": true
+    },
+    "f2_11[0]": {
+      "description": "Federal income tax withheld from Forms W-2",
+      "line_number": "25a",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_12[0]": {
+      "description": "Federal income tax withheld from Forms 1099",
+      "line_number": "25b",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_13[0]": {
+      "description": "Other withholding",
+      "line_number": "25c",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_14[0]": {
+      "description": "Total withholding (Add 25a through 25c)",
+      "line_number": "25d",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_15[0]": {
+      "description": "2024 Estimated tax payments",
+      "line_number": "26",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_16[0]": {
+      "description": "Earned Income Credit (EIC)",
+      "line_number": "27",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_17[0]": {
+      "description": "Additional Child Tax Credit (Schedule 8812)",
+      "line_number": "28",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_18[0]": {
+      "description": "American Opportunity Credit",
+      "line_number": "29",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_19[0]": {
+      "description": "Reserved for future use",
+      "line_number": "30",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_20[0]": {
+      "description": "Amount from Schedule 3, line 15",
+      "line_number": "31",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_21[0]": {
+      "description": "Total other payments",
+      "line_number": "32",
+      "section": "Page 2 - Payments",
+      "required": false
+    },
+    "f2_22[0]": {
+      "description": "Total Payments",
+      "line_number": "33",
+      "section": "Page 2 - Payments",
+      "required": true
+    },
+    "f2_23[0]": {
+      "description": "Amount you overpaid",
+      "line_number": "34",
+      "section": "Page 2 - Refund",
+      "required": false
+    },
+    "f2_24[0]": {
+      "description": "Amount you want refunded",
+      "line_number": "35a",
+      "section": "Page 2 - Refund",
+      "required": false
+    },
+    "f2_27[0]": {
+      "description": "Amount applied to 2025 estimated tax",
+      "line_number": "36",
+      "section": "Page 2 - Refund",
+      "required": false
+    },
+    "f2_28[0]": {
+      "description": "Amount you owe",
+      "line_number": "37",
+      "section": "Page 2 - Amount Owed",
+      "required": false
+    },
+    "f2_29[0]": {
+      "description": "Estimated tax penalty",
+      "line_number": "38",
+      "section": "Page 2 - Amount Owed",
+      "required": false
+    },
+    "f2_30[0]": {
+      "description": "Third Party Designee - Name",
+      "line_number": null,
+      "section": "Page 2 - Designee",
+      "required": false
+    },
+    "f2_31[0]": {
+      "description": "Third Party Designee - Phone",
+      "line_number": null,
+      "section": "Page 2 - Designee",
+      "required": false
+    },
+    "f2_32[0]": {
+      "description": "Third Party Designee - PIN",
+      "line_number": null,
+      "section": "Page 2 - Designee",
+      "required": false
+    },
+    "f2_33[0]": {
+      "description": "Your Occupation",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": true
+    },
+    "f2_34[0]": {
+      "description": "Your Identity Protection PIN (if applicable)",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": false
+    },
+    "f2_35[0]": {
+      "description": "Spouse's Occupation",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": false
+    },
+    "f2_36[0]": {
+      "description": "Spouse's Identity Protection PIN (if applicable)",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": false
+    },
+    "f2_37[0]": {
+      "description": "Phone Number",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": false
+    },
+    "f2_38[0]": {
+      "description": "Email Address",
+      "line_number": null,
+      "section": "Page 2 - Signature",
+      "required": false
+    },
+    "f2_39[0]": {
+      "description": "Paid Preparer - Name",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    },
+    "f2_40[0]": {
+      "description": "Paid Preparer - PTIN",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    },
+    "f2_41[0]": {
+      "description": "Paid Preparer - Firm Name",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    },
+    "f2_42[0]": {
+      "description": "Paid Preparer - Phone",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    },
+    "f2_43[0]": {
+      "description": "Paid Preparer - Address",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    },
+    "f2_44[0]": {
+      "description": "Paid Preparer - Firm EIN",
+      "line_number": null,
+      "section": "Page 2 - Paid Preparer",
+      "required": false
+    }
+  },
+  
+  "checkboxes": {
+    "topmostSubform[0].Page1[0].Dependents_ReadOrder[0]": {
+      "checkbox_number": 1,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/Yes",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].FilingStatus_ReadOrder[0].c1_3[0]": {
+      "checkbox_number": 2,
+      "description": "TODO: Filing Status related",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].FilingStatus_ReadOrder[0].c1_3[1]": {
+      "checkbox_number": 3,
+      "description": "TODO: Filing Status related",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/3",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].FilingStatus_ReadOrder[0].c1_3[2]": {
+      "checkbox_number": 4,
+      "description": "TODO: Filing Status related",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/4",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Line4a-11_ReadOrder[0].c1_22[0]": {
+      "checkbox_number": 5,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Line4a-11_ReadOrder[0].c1_23[0]": {
+      "checkbox_number": 6,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row1[0].c1_14[0]": {
+      "checkbox_number": 7,
+      "description": "TODO: Dependent Row 1 - Type",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row1[0].c1_15[0]": {
+      "checkbox_number": 8,
+      "description": "TODO: Dependent Row 1 - Credit",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row2[0].c1_16[0]": {
+      "checkbox_number": 9,
+      "description": "TODO: Dependent Row 2 - Type",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row2[0].c1_17[0]": {
+      "checkbox_number": 10,
+      "description": "TODO: Dependent Row 2 - Credit",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row3[0].c1_18[0]": {
+      "checkbox_number": 11,
+      "description": "TODO: Dependent Row 3 - Type",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row3[0].c1_19[0]": {
+      "checkbox_number": 12,
+      "description": "TODO: Dependent Row 3 - Credit",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row4[0].c1_20[0]": {
+      "checkbox_number": 13,
+      "description": "TODO: Dependent Row 4 - Type",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].Table_Dependents[0].Row4[0].c1_21[0]": {
+      "checkbox_number": 14,
+      "description": "TODO: Dependent Row 4 - Credit",
+      "line_number": null,
+      "section": "Page 1 - Dependents",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_10[0]": {
+      "checkbox_number": 15,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_11[0]": {
+      "checkbox_number": 16,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_12[0]": {
+      "checkbox_number": 17,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_1[0]": {
+      "checkbox_number": 18,
+      "description": "Filing Status - Single",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_2[0]": {
+      "checkbox_number": 19,
+      "description": "Filing Status - Married Filing Jointly",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_3[0]": {
+      "checkbox_number": 20,
+      "description": "Filing Status - Married Filing Separately",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/2",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_3[1]": {
+      "checkbox_number": 21,
+      "description": "Filing Status - Head of Household",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/5",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_4[0]": {
+      "checkbox_number": 22,
+      "description": "Filing Status - Qualifying Surviving Spouse",
+      "line_number": null,
+      "section": "Page 1 - Filing Status",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_5[0]": {
+      "checkbox_number": 23,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_5[1]": {
+      "checkbox_number": 24,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/2",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_6[0]": {
+      "checkbox_number": 25,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_7[0]": {
+      "checkbox_number": 26,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_8[0]": {
+      "checkbox_number": 27,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page1[0].c1_9[0]": {
+      "checkbox_number": 28,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 1",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_1[0]": {
+      "checkbox_number": 29,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_2[0]": {
+      "checkbox_number": 30,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_3[0]": {
+      "checkbox_number": 31,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_4[0]": {
+      "checkbox_number": 32,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_5[0]": {
+      "checkbox_number": 33,
+      "description": "TODO: Digital Assets - Yes",
+      "line_number": null,
+      "section": "Page 2 - Digital Assets",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_5[1]": {
+      "checkbox_number": 34,
+      "description": "TODO: Digital Assets - No",
+      "line_number": null,
+      "section": "Page 2 - Digital Assets",
+      "required": false,
+      "value_to_check": "/2",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_6[0]": {
+      "checkbox_number": 35,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_6[1]": {
+      "checkbox_number": 36,
+      "description": "TODO: Identify from visual PDF",
+      "line_number": null,
+      "section": "Page 2",
+      "required": false,
+      "value_to_check": "/2",
+      "value_to_uncheck": "/Off"
+    },
+    "topmostSubform[0].Page2[0].c2_7[0]": {
+      "checkbox_number": 37,
+      "description": "TODO: Third Party Designee - Yes",
+      "line_number": null,
+      "section": "Page 2 - Third Party Designee",
+      "required": false,
+      "value_to_check": "/1",
+      "value_to_uncheck": "/Off"
+    }
+  },
+  
+  "_income_line_mapping_guide": {
+    "note": "This guide reflects the visual mapping from the 2024 labeled form images.",
+    "f1_32[0]": "Line 1a - Wages (W-2)",
+    "f1_41[0]": "Line 1z - Total wages",
+    "f1_43[0]": "Line 2b - Taxable interest",
+    "f1_54[0]": "Line 9 - Total income",
+    "f1_56[0]": "Line 11 - Adjusted Gross Income",
+    "f1_57[0]": "Line 12 - Standard deduction",
+    "f1_60[0]": "Line 15 - Taxable income",
+    "f2_02[0]": "Line 16 - Tax",
+    "f2_10[0]": "Line 24 - Total tax",
+    "f2_22[0]": "Line 33 - Total payments",
+    "f2_23[0]": "Line 34 - Overpayment",
+    "f2_28[0]": "Line 37 - Amount you owe"
+  }
+}

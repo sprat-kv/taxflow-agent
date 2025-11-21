@@ -1,6 +1,3 @@
-"""
-LangGraph nodes for tax processing workflow.
-"""
 from sqlalchemy.orm import Session
 from app.agent.state import TaxState
 from app.services.tax_aggregator import aggregate_tax_data
@@ -8,30 +5,15 @@ from app.services.tax_service import TaxService
 from app.agent.llm import get_llm, VALIDATOR_PROMPT
 
 def aggregator_node(state: TaxState, db: Session) -> TaxState:
-    """
-    Aggregate financial data from extraction results and check for missing information.
-    
-    Args:
-        state: Current graph state
-        db: Database session
-        
-    Returns:
-        Updated state with aggregated_data or missing_fields
-    """
     from app.models.models import UploadSession
     from app.schemas.schemas import W2Data, NEC1099Data, INT1099Data
     
     missing_fields = []
-    
-    # Initialize personal_info if not present
     personal_info = state.get("personal_info", {})
     
-    # --- 1. Check for Universally Mandatory Fields ---
-    
-    # Extract Name/SSN/Address from W-2 if available and missing in state
     extracted_name = None
     extracted_ssn = None
-    extracted_address = None # Placeholder - currently schemas don't fully parse address structure
+    extracted_address = None
     
     db_session = db.query(UploadSession).filter(UploadSession.id == state["session_id"]).first()
     if db_session:
@@ -69,13 +51,10 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
                 except Exception:
                     pass
         
-        # Auto-fill personal info from extraction if not provided by user
         if extracted_name and not personal_info.get("filer_name"):
             personal_info["filer_name"] = extracted_name
         if extracted_ssn and not personal_info.get("filer_ssn"):
             personal_info["filer_ssn"] = extracted_ssn
-        
-        # Tax Year Logic
         if extracted_years:
             if len(extracted_years) > 1:
                 state["warnings"].append(f"Multiple tax years detected in documents: {', '.join(sorted(extracted_years))}. Please specify which year to use.")
@@ -104,13 +83,11 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
         state["status"] = "error"
         return state
     
-    # If any mandatory fields are missing, stop here and ask user
     if missing_fields:
         state["missing_fields"] = missing_fields
         state["status"] = "waiting_for_user"
         return state
 
-    # --- 2. Aggregation & Financial Logic ---
     try:
         tax_input = aggregate_tax_data(state["session_id"], db)
         
@@ -153,16 +130,6 @@ def aggregator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def calculator_node(state: TaxState, db: Session) -> TaxState:
-    """
-    Calculate tax liability and refund/owed.
-    
-    Args:
-        state: Current graph state
-        db: Database session
-        
-    Returns:
-        Updated state with calculation_result
-    """
     try:
         result = TaxService.calculate_tax(
             state["session_id"],
@@ -188,15 +155,6 @@ def calculator_node(state: TaxState, db: Session) -> TaxState:
     return state
 
 def validator_node(state: TaxState) -> TaxState:
-    """
-    Validate tax calculation using LLM.
-    
-    Args:
-        state: Current graph state
-        
-    Returns:
-        Updated state with validation_result
-    """
     if not state.get("calculation_result"):
         state["warnings"].append("No calculation result to validate")
         state["status"] = "error"

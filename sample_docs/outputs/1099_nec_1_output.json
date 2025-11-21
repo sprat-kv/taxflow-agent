@@ -1,0 +1,21 @@
+{
+  "file": "1099_nec_1.pdf",
+  "session_id": "07975f6a-cc6a-47b8-a6f5-70f7915dc9d7",
+  "document_id": "6d41de8f-fb49-4bb0-8784-6eff123b166e",
+  "extraction": {
+    "id": "81e79a60-153c-4052-ae94-527f6dfc7a4f",
+    "document_id": "6d41de8f-fb49-4bb0-8784-6eff123b166e",
+    "document_type": "tax.us.1099NEC",
+    "structured_data": {
+      "tax_year": null,
+      "payer_tin": "45-6789123",
+      "payer_name": "Acme Design Studio LLC",
+      "recipient_tin": "123-45-6789",
+      "recipient_name": "Kelly R. Contractor",
+      "nonemployee_compensation": 4800.0,
+      "federal_income_tax_withheld": 0.0
+    },
+    "warnings": null,
+    "created_at": "2025-11-19T19:24:46.789851"
+  }
+}
