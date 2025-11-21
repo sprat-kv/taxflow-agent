@@ -423,8 +423,20 @@ Server runs on:
 
 ### API Documentation
 
+**📖 Complete API Reference:** See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for:
+- Detailed request/response schemas for all endpoints
+- Complete workflow examples
+- Frontend integration guidelines
+- Advisor feedback usage instructions
+
+**Interactive Documentation:**
 - Swagger UI: `http://localhost:8000/docs` or `http://<your-ip>:8000/docs`
 - ReDoc: `http://localhost:8000/redoc` or `http://<your-ip>:8000/redoc`
+
+**Key API Features:**
+- **Agent Activity Logs:** The `/sessions/{id}/process` endpoint returns a `logs` array with execution timeline
+- **Advisor Feedback:** ⭐ NEW - Personalized financial advice in `advisor_feedback` field
+- **Current Step Tracking:** Real-time workflow progress via `current_step` field
 
 ## Database Schema
 
