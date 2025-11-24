@@ -1,5 +1,6 @@
 from pathlib import Path
 from pypdf import PdfReader, PdfWriter
+from pypdf.generic import NameObject, NumberObject
 from typing import Dict
 from sqlalchemy.orm import Session
 from app.models.models import WorkflowState
@@ -134,13 +135,44 @@ class Form1040Service:
     @classmethod
     def _fill_pdf(cls, session_id: str, field_values: Dict[str, str], filing_status: str) -> Path:
         reader = PdfReader(cls.TEMPLATE_PATH)
+        
+        # Set text alignment to left-justified for all form fields in the reader
+        for page_num, page in enumerate(reader.pages):
+            if "/Annots" in page:
+                annots = page["/Annots"]
+                if isinstance(annots, list):
+                    for annot_ref in annots:
+                        try:
+                            annot_obj = annot_ref.get_object() if hasattr(annot_ref, 'get_object') else annot_ref
+                            
+                            # Check if it's a Widget annotation (form field)
+                            subtype = annot_obj.get("/Subtype")
+                            if subtype == "/Widget":
+                                # Set text alignment to left-justified (0)
+                                annot_obj[NameObject("/Q")] = NumberObject(0)
+                                
+                        except (AttributeError, TypeError, KeyError):
+                            continue
+        
         writer = PdfWriter()
         writer.clone_reader_document_root(reader)
         
         if field_values:
-            writer.update_page_form_field_values(writer.pages[0], field_values)
+            writer.update_page_form_field_values(writer.pages[0], field_values, flatten=True)
             if len(writer.pages) > 1:
-                writer.update_page_form_field_values(writer.pages[1], field_values)
+                writer.update_page_form_field_values(writer.pages[1], field_values, flatten=True)
+        
+        # Remove interactive form fields after flattening their values
+        for page in writer.pages:
+            if "/Annots" in page:
+                del page["/Annots"]
+        
+        try:
+            root = writer._root_object
+            if root and "/AcroForm" in root:
+                del root["/AcroForm"]
+        except (AttributeError, KeyError):
+            pass
         
         cls.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         session_dir = cls.OUTPUT_DIR / session_id
