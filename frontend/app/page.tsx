@@ -41,11 +41,7 @@ export default function LandingPage() {
       opacity: 1,
       y: 0,
       transition: {
-<<<<<<< HEAD
         type: "spring" as const,
-=======
-        type: "spring",
->>>>>>> fa00ea120ed9fb0b332b66b8ce5e0600ac353737
         stiffness: 50
       }
     }
