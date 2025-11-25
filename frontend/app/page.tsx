@@ -153,11 +153,7 @@ export default function LandingPage() {
               style={{ opacity, scale }}
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
-<<<<<<< HEAD
               transition={{ duration: 1, delay: 0.5, type: "spring" as const }}
-=======
-              transition={{ duration: 1, delay: 0.5, type: "spring" }}
->>>>>>> fa00ea120ed9fb0b332b66b8ce5e0600ac353737
               className="relative h-[600px] hidden lg:block perspective-1000"
             >
               {/* Main Card */}
