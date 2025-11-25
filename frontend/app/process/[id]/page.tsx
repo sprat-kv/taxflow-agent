@@ -325,11 +325,7 @@ export default function ProcessPage({ params }: ProcessPageProps) {
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${progress}%` }}
-<<<<<<< HEAD
                                         transition={{ type: "spring" as const, stiffness: 50, damping: 15 }}
-=======
-                                        transition={{ type: "spring", stiffness: 50, damping: 15 }}
->>>>>>> fa00ea120ed9fb0b332b66b8ce5e0600ac353737
                                         className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full relative"
                                     >
                                         <div className="absolute inset-0 bg-white/20 animate-shimmer skew-x-12"></div>
