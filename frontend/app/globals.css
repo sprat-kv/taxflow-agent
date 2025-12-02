@@ -121,3 +121,16 @@ body {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 20px;
 }
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}

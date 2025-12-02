@@ -232,12 +232,12 @@ export default function LandingPage() {
           <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Trusted by employees at</p>
         </div>
         <div className="relative flex overflow-x-hidden group">
-          <div className="animate-shimmer flex space-x-16 whitespace-nowrap opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+          <div className="animate-marquee flex whitespace-nowrap opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
             {['Google', 'Meta', 'Amazon', 'Netflix', 'Microsoft', 'Apple', 'Tesla', 'Stripe', 'Uber', 'Airbnb'].map((company, i) => (
-              <span key={i} className="text-2xl font-bold text-gray-800">{company}</span>
+              <span key={i} className="text-2xl font-bold text-gray-800 mr-16">{company}</span>
             ))}
             {['Google', 'Meta', 'Amazon', 'Netflix', 'Microsoft', 'Apple', 'Tesla', 'Stripe', 'Uber', 'Airbnb'].map((company, i) => (
-              <span key={`dup-${i}`} className="text-2xl font-bold text-gray-800">{company}</span>
+              <span key={`dup-${i}`} className="text-2xl font-bold text-gray-800 mr-16">{company}</span>
             ))}
           </div>
         </div>
